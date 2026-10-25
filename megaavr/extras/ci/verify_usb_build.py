@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate a native-USB ELF/HEX pair without target hardware.
 
-Usage: python megaavr/extras/ci/verify_usb_build.py path/to/sketch.ino.elf
+Usage: python megaavr/extras/ci/verify_usb_build.py path/to/sketch.ino.elf [avr32du28]
 """
 import importlib.util
 from pathlib import Path
@@ -9,7 +9,7 @@ import struct
 import sys
 
 
-def verify(filename):
+def verify(filename, mcu="avr64du32"):
     filename = Path(filename)
     raw = filename.read_bytes()
     header = struct.unpack_from("<16sHHIIIIIHHHHHH", raw)
@@ -78,9 +78,15 @@ def verify(filename):
     spec = importlib.util.spec_from_file_location("euboot_upload", module)
     uploader = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(uploader)
-    count = uploader.validate_hex(filename.with_suffix(".hex"))
+    count = uploader.validate_hex(filename.with_suffix(".hex"), mcu)
+    ram_start = 0x8000 - uploader.FLASH_SIZES[mcu] // 8
+    for section_name in (".data", ".bss", ".noinit"):
+        section = by_name.get(section_name)
+        if section and section[5]:
+            assert 0x800000 + ram_start <= section[3] < section[3] + section[5] <= 0x808000, \
+                section_name + " must fit the selected MCU's SRAM"
     print("PASS: vectors at 0x0A00, %d HEX bytes within application flash, CDC descriptors and DMA alignment" % count)
 
 
 if __name__ == "__main__":
-    verify(sys.argv[1])
+    verify(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "avr64du32")

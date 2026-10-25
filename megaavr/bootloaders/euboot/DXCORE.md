@@ -2,9 +2,11 @@
 
 This directory vendors askn37/euboot at commit
 66cdc00dac142bb1cf70f5fcbf5fbca5d45894ad (firmware 3.72.50).
-Source files, LICENSE, the upstream Makefile, CRC generator and documentation
-are retained. The bootloader sources and the supplied HEX are unmodified.
-Only the PF2 LED / PF6 switch Curiosity Nano binary is distributed here.
+LICENSE, the upstream Makefile, CRC generator and documentation are retained.
+The PF2 LED / PF6 switch Curiosity Nano HEX is unmodified.
+Standalone 28/32-pin images are generated from locally adapted sources:
+configuration.h selects the internal-regulator/external-VUSB mode, and nvm_cmd
+uses .trampolines so the fixed reset/SPM ABI is independent of LTO function order.
 
 The Intel HEX blob matches upstream Git blob
 9abf09a11cda4b84f36048df285749b5a50569ad.
@@ -18,9 +20,10 @@ at 0x0a00 and preserves UPDI. Its PF6 switch uses GPIO mode (SYSCFG0=0xd1).
 Do not substitute an Optiboot image or a debug euboot image: their application
 origins and startup conventions differ.
 
-## Rebuild
+## Rebuild the original Nano firmware
 
-The upstream source uses MacroMicroAPI, not the DxCore API. Rebuild with the
+The upstream Nano source uses MacroMicroAPI, not the DxCore API. For an
+unmodified historical rebuild, check out upstream commit 66cdc00 and use the
 MultiX Zinnia modernAVR SDK as documented in README.md / README_jp.md.
 Install the SDK with AVR DU support and Arduino CLI, plus GNU make, AVR binutils
 and Perl if the supplied CRC/padding format is required. Use WSL or another
@@ -43,6 +46,31 @@ An exact byte-for-byte rebuild also requires the original SDK/toolchain
 revisions; the upstream repository does not lock those dependencies.
 For installation of this fixed version, use the supplied verified HEX rather
 than rebuilding with an arbitrary newer compiler.
+
+## Standalone 28/32-pin builds
+
+build_generic.py builds all four supported MCUs and both VUSB modes using
+avr-g++ 7.3 and avr-libc, without installing the MacroMicroAPI SDK.
+build_support supplies only the pin, delay and memory-header compatibility
+needed by the pinned non-debug source; debug UART builds are intentionally excluded.
+Its pin numbers encode physical ports and are not Arduino pin numbers.
+
+```sh
+python build_generic.py --toolchain /path/to/avr-gcc/bin --output /path/to/build
+```
+
+Add --write-assets to update hex/generic and its manifest after validation.
+The script rejects images larger than 2560 bytes, changed reset/SPM ABI,
+RAM that needs CRT initialization, and workspace placed outside the target SRAM.
+The generated images use PA7 for the LED and PF6 for the active-low BOOT button.
+No CRC is appended to these generic images; the board fuses disable CRCSCAN.
+
+AVR64DU SRAM starts at 0x6000, AVR32DU SRAM at 0x7000; both end at 0x7fff.
+Link separately for each capacity so global workspace addresses are valid.
+The manifest records source hashes, compiler/device-header hashes and image
+hashes. All generic boards reserve five sectors and preserve UPDI.
+External VUSB uses USBVREG=0 and SYSCFG1=0x00; internal regulation uses
+USBVREG=1 and SYSCFG1=0x08. Burn the matching bootloader whenever changing mode.
 
 ## Application integration
 

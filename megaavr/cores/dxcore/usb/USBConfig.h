@@ -1,4 +1,4 @@
-/* USB identifiers for the AVR DU evaluation board. */
+/* USB identifiers and VUSB power configuration for AVR DU boards. */
 #pragma once
 
 #ifndef USB_VID
@@ -11,7 +11,14 @@
   #define USB_MANUFACTURER "Microchip Technology Inc."
 #endif
 #ifndef USB_PRODUCT
-  #define USB_PRODUCT "DxCore AVR64DU32 CDC"
+  #define USB_PRODUCT "DxCore AVR DU CDC"
+#endif
+
+#ifndef DXCORE_USB_VREG
+  #define DXCORE_USB_VREG 1
+#endif
+#if DXCORE_USB_VREG != 0 && DXCORE_USB_VREG != 1
+  #error "DXCORE_USB_VREG must be 1 (internal regulator) or 0 (external 3.3 V VUSB)."
 #endif
 
 /* Bounded foreground waits; independent of the selected millis() timer. */

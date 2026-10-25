@@ -96,7 +96,7 @@ In a couple of sentences, all the "modern" AVRs.
   * `AVR DA` - Dx-class mid-high pincount general purpose MCU, pincounts 28-64, flash 32k-128k. No HF crystal. Yes QTouch (which we now have a library for!).
   * `AVR DB` - Dx-class mid-high pincount **MVIO** and **OPAMP** MCU, pincounts 28-64, flash 32k-128k. Yes HF crystal. No QTouch.
   * `AVR DD` - Dx-class low-mid pincount, low-cost **MVIO** MCU, pincounts 14-32, flash 16-64k.
-  * `AVR DU` - Dx-class, low-mid pincount **USB** MCU. Experimental native CDC and euboot upload support is available for AVR64DU32 Curiosity Nano on Windows; see [USB setup and recovery](megaavr/extras/Ref_USB.md).
+  * `AVR DU` - Dx-class, low-mid pincount **USB** MCU. Experimental native CDC and euboot uploads support AVR64DU32 Curiosity Nano and standalone AVR64DU32/AVR32DU32/AVR64DU28/AVR32DU28 on Windows; see [USB setup and recovery](megaavr/extras/Ref_USB.md).
 * `AVR Ex family` - **Supported by DxCore** Newer line of AVRs. These have a clock and ALU apparently derived more closely from the tinyAVRs than the Dx-series, complete with the speedgrades. Features the new ADC from the 2-series.
   * `AVR EA` - The first EA-series part, a mid-range, mid-pincount general purpose MCU with proper differential ADC.
   * `AVR EB` - A lower flash, low-mid pincount MCU with new advanced timers which take advantage of a fancy new PLL, intended for BLDC motor control applications.

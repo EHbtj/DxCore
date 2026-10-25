@@ -1,8 +1,11 @@
-# AVR64DU32 Curiosity Nano のネイティブ USB
+# AVR DU のネイティブ USB
 
-初期対応は **Windows / Arduino IDE 2.x / AVR64DU32 Curiosity Nano** です。
-ボード一覧の **AVR64DU32 Curiosity Nano (native USB CDC + euboot)** を選択します。
-内蔵 20 MHz、TCB1 による millis()/micros()、PF2 の LED、PF6 の SW0 を使用します。
+対応環境は **Windows / Arduino IDE 2.x** です。
+Curiosity Nano と、AVR64DU32 / AVR32DU32 / AVR64DU28 / AVR32DU28 の IC 単体を対象にします。
+Nano は **AVR64DU32 Curiosity Nano (native USB CDC + euboot)**、
+IC 単体は **AVR DU-series (native USB CDC + euboot, standalone)** を選択します。
+共通で内蔵 20 MHz、TCB1 による millis()/micros()、PF6 の BOOT 入力を使用します。
+状態 LED は Nano が PF2、汎用版が PA7 です。
 この機能は実験的です。ビルドとホスト側のテストに加え、下記の実機確認が必要です。
 
 ## できること
@@ -29,6 +32,7 @@ SERIAL_PORT_HARDWARE と SERIAL_PORT_HARDWARE_OPEN は Serial0 を指します�
    次を記述します。Python 3 の実際の場所を指定してください。
 
    ```ini
+   tools.serialupdi.cmd=C:/path/to/python.exe
    tools.euboot.python=C:/path/to/python.exe
    ```
 
@@ -166,7 +170,102 @@ python megaavr/extras/ci/verify_usb_build.py path/to/SerialUSBEcho.ino.elf
 - 更新前後でブート領域を読み出して一致を確認し、通常の更新で euboot が消えない。
 
 ビルド確認は、USB の列挙・実転送・実機更新の確認を代替しません。
-他の DU 品種、他の OS、標準 DFU、汎用 HID、リモートウェイク、低消費電力動作は後続対応です。
+AVR16DU、14/20 ピン品種、他の OS、標準 DFU、汎用 HID、リモートウェイク、
+低消費電力動作は後続対応です。
+
+## IC 単体 / 汎用ボード
+
+ボード一覧で **AVR DU-series (native USB CDC + euboot, standalone)** を選びます。
+Chip メニューで実際の型番を、USB power メニューで回路に合う電源方式を選択します。
+各設定には専用のブートローダー HEX を用意しています。実機での確認は未実施です。
+
+| Chip | スケッチ容量 | SRAM | ピン定義 |
+| --- | ---: | ---: | --- |
+| AVR64DU32 | 62,976 B | 8,192 B | 32pin-duseries |
+| AVR32DU32 | 30,208 B | 4,096 B | 32pin-duseries |
+| AVR64DU28 | 62,976 B | 8,192 B | 28pin-duseries |
+| AVR32DU28 | 30,208 B | 4,096 B | 28pin-duseries |
+
+20 MHz 内蔵クロック、TCB1 による millis()/micros() を使用します。
+64 KB 品種は FLMAP section 1 をロック、32 KB 品種は既定のマッピングを使用します。
+SerialUSB / Serial / Serial0 / Serial1 の API は Nano 版と共通です。
+
+### USB 電源の選択
+
+| USB power | 回路の前提 | ブートローダーとスケッチの動作 |
+| --- | --- | --- |
+| 5 V VDD, internal USB regulator | VDD に 5 V、VUSB は内蔵レギュレータの出力 | USBVREG=1、SYSCFG1=0x08 |
+| 3.3 V VUSB externally supplied | VDD と VUSB に外部レギュレータから 3.3 V を供給 | USBVREG=0、SYSCFG1=0x00 |
+
+初期の汎用構成は **USB VBUS から給電するバスパワー回路**を前提にします。
+3.3 V 方式では、USB VBUS を外部レギュレータで 3.3 V に変換して供給してください。
+USB を外しても他の電源から MCU が動く自己給電・二重給電回路の VBUS 検出は今回の対象外です。
+
+電源方式を変更した場合は、スケッチだけでなく **ブートローダーを再書き込み**してください。
+選択した方式をブート時とスケッチ実行時で一致させる必要があります。
+外部 3.3 V を与える構成では内蔵レギュレータを無効にします。
+VUSB に USB VBUS の 5 V を直接接続しないでください。
+電源の立ち上がり速度、VDD/VUSB のデカップリング、USB コネクタ周辺回路は
+対象品種のデータシートに従って設計してください。
+
+参考: [AVR64DU28/32 データシート・電源構成](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/AVR64DU-28-32-Prelim-DataSheet-DS40002548.pdf)、
+[AVR32DU28 のデータシート](https://www.microchip.com/en-us/product/AVR32DU28)。
+IC のパッケージごとに端子番号が異なるため、以下は信号名で示します。
+
+| 信号 | 用途 |
+| --- | --- |
+| DP / DM | USB コネクタの D+ / D- |
+| VDD / GND / VUSB | 選択した方式に合う電源とデカップリング |
+| PF7 / UPDI | 初回導入・復旧用の UPDI 接続を保持 |
+| PF6 | BOOT ボタンを GND へ接続。内蔵プルアップで起動時に判定 |
+| PA7 | ブート状態 LED。LED は抵抗を介して GND へ接続、外付け LED の省略も可能 |
+
+汎用版 euboot は PA7 を起動時の状態表示に使用します。
+他の回路を接続する場合は、この起動時の出力を考慮してください。
+PF6 は GPIO 入力として使うため、この設定ではハードウェア RESET 端子ではありません。
+
+### 初回導入と USB 更新
+
+IC 単体には Nano の内蔵デバッガーがないため、外部の UPDI 書き込み器が必要です。
+SerialUPDI、PICkit、Atmel-ICE など、実際に使用する書き込み器を IDE の
+「ツール → 書込装置」で選択します。書き込み器の電圧は対象の VDD に合わせます。
+
+1. UPDI、GND、および必要な電源を接続します。
+2. 汎用 USB ボード、Chip、USB power を選択します。
+3. 「ブートローダを書き込む」を実行します。既存のスケッチは消去されます。
+4. すべての給電を外し、PF6 の BOOT ボタンを押しながら USB を接続します。
+5. 最初の USB スケッチをアップロードします。
+
+たとえば AVR32DU28 / 外部 3.3 V / SerialUPDI の場合:
+
+```powershell
+arduino-cli burn-bootloader --fqbn DxCoreUSB:megaavr:avrduusb_generic:chip=avr32du28,usbpower=external --programmer serialupdi --port COM5
+arduino-cli compile --fqbn DxCoreUSB:megaavr:avrduusb_generic:chip=avr32du28,usbpower=external --output-dir ./usb-build ./SerialUSBEcho
+arduino-cli upload --fqbn DxCoreUSB:megaavr:avrduusb_generic:chip=avr32du28,usbpower=external --input-dir ./usb-build
+```
+
+COM5 は SerialUPDI アダプターのポート例です。
+初回の USB アップロードには COM ポートが存在しなくても構いません。
+USB スケッチが動作して CDC が認識された後は、通常の自動書き込みを使えます。
+
+32 KB 品種では SRAM が 0x7000..0x7FFF、64 KB 品種では 0x6000..0x7FFF にあります。
+末尾の起動マーカーは共通でも、ブートローダーの作業領域の開始位置が異なります。
+Nano / 64 KB 用 HEX を32 KB 品種に流用せず、Chip と電源選択に対応する HEX を使用します。
+アップローダーも型番ごとのフラッシュ上限を検査し、32 KB 品種への範囲外書き込みを拒否します。
+
+### ブートローダーの再生成
+
+通常の利用では配布済み HEX を使います。再生成が必要な場合:
+
+```powershell
+python megaavr/bootloaders/euboot/build_generic.py --toolchain C:/path/to/avr-gcc/bin --output ./boot-build
+```
+
+4品種×2電源方式を生成し、先頭の起動/SPM コード、フラッシュサイズ、
+初期化不要の RAM 作業領域、SRAM 内の配置を検査します。
+検査後の HEX をリポジトリ内の hex/generic に保存する場合だけ --write-assets を付けます。
+実機への書き込みや外部公開は行いません。
+生成条件・ソース・コンパイラ・デバイスヘッダー・イメージのハッシュは manifest.json に記録します。
 
 ## 出典
 

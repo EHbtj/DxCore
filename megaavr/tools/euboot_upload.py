@@ -15,17 +15,25 @@ import sys
 import time
 
 APP_START = 0x0A00
-FLASH_END = 0x10000
+FLASH_SIZES = {
+    "avr64du32": 0x10000,
+    "avr32du32": 0x8000,
+    "avr64du28": 0x10000,
+    "avr32du28": 0x8000,
+}
 BOOT_TIMEOUT = 10.0
 RECOVERY = (
-    "Hold SW0 (PF6), remove all target power, then reconnect target USB while "
-    "holding SW0. Release SW0 and upload again. The onboard debugger's USB "
-    "connector is used only for the initial UPDI bootloader installation."
+    "Hold BOOT/SW0 (PF6), remove all target power, then reconnect target USB while "
+    "holding the button. Release it and upload again. Use UPDI for initial "
+    "bootloader installation or recovery."
 )
 
 
-def validate_hex(filename):
+def validate_hex(filename, mcu="avr64du32"):
     """Reject invalid images and writes outside the application's flash region."""
+    if mcu not in FLASH_SIZES:
+        raise ValueError("Unsupported euboot target: " + mcu)
+    flash_end = FLASH_SIZES[mcu]
     base = 0
     count = 0
     eof = False
@@ -43,8 +51,8 @@ def validate_hex(filename):
         length, address, kind = record[0], int.from_bytes(record[1:3], "big"), record[3]
         data = record[4:-1]
         if kind == 0:
-            if length and not (APP_START <= base + address < base + address + length <= FLASH_END):
-                raise ValueError("Image overlaps euboot or exceeds AVR64DU32 flash")
+            if length and not (APP_START <= base + address < base + address + length <= flash_end):
+                raise ValueError("Image overlaps euboot or exceeds " + mcu.upper() + " flash")
             count += length
         elif kind == 1 and length == 0 and address == 0:
             eof = True
@@ -143,9 +151,7 @@ def wait_for_bootloader(vid, pid, timeout=BOOT_TIMEOUT):
 
 
 def upload(args):
-    if args.mcu != "avr64du32":
-        raise ValueError("This uploader is configured for AVR64DU32 only")
-    count = validate_hex(args.hex)
+    count = validate_hex(args.hex, args.mcu)
     command = [
         args.avrdude, "-C" + args.config, "-p" + args.mcu, "-cjtag3updi",
         "-Pusb:%04x:%04x" % (args.vid, args.pid), "-D",

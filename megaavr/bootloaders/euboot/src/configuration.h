@@ -61,6 +61,11 @@
 #define FW_MINOR 72
 #define FW_REL   50
 
+/* DxCore standalone builds: match the VUSB wiring in boot and application. */
+#ifndef EUBOOT_USB_VREG
+  #define EUBOOT_USB_VREG 1
+#endif
+
 /*
  * Bootloader enable switch
  *

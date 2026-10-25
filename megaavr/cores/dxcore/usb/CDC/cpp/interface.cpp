@@ -108,8 +108,8 @@ namespace USB_NAMESPACE {
   void start() {
     if (running) return;
     // USB's 48 MHz PLL is controlled by the peripheral, using OSCHF.
-    // The Nano's target USB circuit uses the internal USB voltage regulator.
-    SYSCFG_VUSBCTRL = SYSCFG_USBVREG_bm;
+    // Match the selected bootloader's internal-regulator / external-VUSB mode.
+    SYSCFG_VUSBCTRL = DXCORE_USB_VREG ? SYSCFG_USBVREG_bm : 0;
     _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA,
       (CLKCTRL_OSCHFCTRLA & ~CLKCTRL_AUTOTUNE_gm) | CLKCTRL_AUTOTUNE_SOF_gc);
     _delay_ms(1);

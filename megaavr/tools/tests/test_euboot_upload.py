@@ -48,6 +48,33 @@ class UploaderTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             uploader.validate_hex(name)
 
+    def test_each_target_has_its_own_flash_boundary(self):
+        for mcu, capacity in uploader.FLASH_SIZES.items():
+            with self.subTest(mcu=mcu):
+                name = self.write_image(record(capacity - 1, 0, b"\x01"), record(0, 1))
+                self.assertEqual(uploader.validate_hex(name, mcu), 1)
+                if capacity == 32768:
+                    name = self.write_image(record(0x8000, 0, b"\x01"), record(0, 1))
+                    with self.assertRaisesRegex(ValueError, mcu.upper()):
+                        uploader.validate_hex(name, mcu)
+
+    def test_unsupported_mcu_is_rejected_before_contacting_hardware(self):
+        args = self.args()
+        args.mcu = "avr16du32"
+        with patch.object(uploader, "wait_for_bootloader") as wait:
+            with self.assertRaisesRegex(ValueError, "Unsupported"):
+                uploader.upload(args)
+        wait.assert_not_called()
+
+    def test_upload_passes_the_selected_mcu_to_avrdude(self):
+        for mcu in uploader.FLASH_SIZES:
+            args = self.args()
+            args.mcu = mcu
+            with self.subTest(mcu=mcu), patch.object(uploader, "wait_for_bootloader"), \
+                 patch.object(uploader.subprocess, "run", return_value=Mock(returncode=0)) as run:
+                self.assertEqual(uploader.upload(args), 0)
+            self.assertIn("-p" + mcu, run.call_args.args[0])
+
     def test_invalid_checksum_and_missing_eof_are_rejected(self):
         for content in (":020A00000000F5", record(0xA00, 0, b"\x01"), record(0, 1)):
             self.image.write_text(content, encoding="ascii")

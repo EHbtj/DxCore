@@ -52,3 +52,46 @@ jobs:
             -
           enable-deltas-report: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  standalone:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mcu: [avr64du32, avr32du32, avr64du28, avr32du28]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile standalone with internal USB regulator
+        uses: arduino/compile-sketches@main
+        with:
+          cli-version: "1.5.1"
+          fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=regulator
+          sketch-paths: |
+            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+            - megaavr/extras/ci/test-sketch/usb/StreamAPI
+          platforms: |
+            - source-url: http://drazzy.com/package_drazzy.com_index.json
+              name: DxCore:megaavr
+            - source-path: megaavr
+              name: DxCore:megaavr
+          libraries: |
+            -
+          enable-deltas-report: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compile standalone with external 3.3 V VUSB
+        uses: arduino/compile-sketches@main
+        with:
+          cli-version: "1.5.1"
+          fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=external
+          sketch-paths: |
+            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+            - megaavr/extras/ci/test-sketch/usb/StreamAPI
+          platforms: |
+            - source-url: http://drazzy.com/package_drazzy.com_index.json
+              name: DxCore:megaavr
+            - source-path: megaavr
+              name: DxCore:megaavr
+          libraries: |
+            -
+          enable-deltas-report: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}

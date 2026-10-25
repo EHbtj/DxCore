@@ -1,9 +1,16 @@
 """Check the distributed bootloader and the board's memory/fuse contract."""
 import hashlib
+import importlib.util
+import json
 from pathlib import Path
+import re
 import unittest
 
 PLATFORM = Path(__file__).resolve().parents[2]
+BOOT = PLATFORM / "bootloaders/euboot"
+BOOT_SPEC = importlib.util.spec_from_file_location("build_generic", BOOT / "build_generic.py")
+generic = importlib.util.module_from_spec(BOOT_SPEC)
+BOOT_SPEC.loader.exec_module(generic)
 
 
 class USBAssetTests(unittest.TestCase):
@@ -48,6 +55,57 @@ class USBAssetTests(unittest.TestCase):
         # CLI resolves a board's default programmer even for plain "upload".
         self.assertNotIn("avrduusb.programmer.default", board)
         self.assertEqual(board["avrduusb.upload.tool.default"], "euboot")
+
+    def test_generic_images_match_manifest_and_boot_abi(self):
+        manifest = json.loads((BOOT / "hex/generic/manifest.json").read_text())
+        self.assertEqual(len(manifest["images"]), 8)
+        for filename, metadata in manifest["images"].items():
+            with self.subTest(filename=filename):
+                image = generic.image_bytes(BOOT / "hex/generic" / filename)
+                self.assertEqual(hashlib.sha256(image).hexdigest(), metadata["sha256"])
+                self.assertEqual(len(image), metadata["bytes"])
+                self.assertLessEqual(len(image), 2560)
+                self.assertEqual(int.from_bytes(image[:2], "little") & 0xF000, 0xC000)
+                self.assertEqual(image[2:14], bytes.fromhex("6193089581910895f8950895"))
+                expected_start = 0x6000 if "64" in metadata["mcu"] else 0x7000
+                self.assertEqual(metadata["ram_start"], expected_start)
+                self.assertEqual(metadata["ramend"], 0x7FFF)
+                self.assertLess(metadata["static_ram_bytes"], 4096 - 256)
+        for relative, expected_hash in manifest["sources"].items():
+            content = (BOOT / relative).read_bytes().replace(b"\r\n", b"\n")
+            self.assertEqual(hashlib.sha256(content).hexdigest(), expected_hash, relative)
+
+    def test_generic_board_combinations_select_matching_boot_and_memory(self):
+        entries = {}
+        prefix = "avrduusb_generic."
+        for line in (PLATFORM / "boards.txt").read_text(encoding="utf-8").splitlines():
+            if line.startswith(prefix):
+                key, value = line[len(prefix):].split("=", 1)
+                self.assertNotIn(key, entries)
+                entries[key] = value
+        self.assertNotIn("programmer.default", entries)
+        manifest = json.loads((BOOT / "hex/generic/manifest.json").read_text())["images"]
+        for mcu in generic.MCUS:
+            for power in ("regulator", "external"):
+                with self.subTest(mcu=mcu, power=power):
+                    config = {key: value for key, value in entries.items() if not key.startswith("menu.")}
+                    for menu_prefix in ("menu.chip." + mcu + ".", "menu.usbpower." + power + "."):
+                        config.update((key[len(menu_prefix):], value) for key, value in entries.items() if key.startswith(menu_prefix))
+                    capacity = 65536 if "64" in mcu else 32768
+                    self.assertEqual(config["build.mcu"], mcu)
+                    self.assertEqual(config["build.variant"], mcu[-2:] + "pin-duseries")
+                    self.assertEqual(int(config["upload.maximum_size"]), capacity - 2560)
+                    self.assertEqual(int(config["upload.maximum_data_size"]), capacity // 8)
+                    self.assertEqual(config["build.usbvreg"], "1" if power == "regulator" else "0")
+                    self.assertEqual(config["bootloader.SYSCFG1"], "0x08" if power == "regulator" else "0x00")
+                    self.assertEqual(config["bootloader.BOOTSIZE"], "0x05")
+                    self.assertEqual(config["bootloader.SYSCFG0"], "0xD1")
+                    self.assertIn("5:{bootloader.SYSCFG0}", config["bootloader.serupdifuse5"])
+                    filename = re.sub(r"\{([^}]+)\}", lambda match: config[match[1]], config["bootloader.file"])
+                    path = PLATFORM / "bootloaders" / filename
+                    self.assertTrue(path.is_file(), filename)
+                    self.assertEqual(manifest[path.name]["mcu"], mcu)
+                    self.assertEqual(manifest[path.name]["power"], power)
 
 
 if __name__ == "__main__":

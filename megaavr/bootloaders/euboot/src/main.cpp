@@ -68,7 +68,7 @@ __attribute__((used))
 int main (void);
 
 __attribute__((used))
-__attribute__((section (".vectors")))
+__attribute__((section (".trampolines")))
 void nvm_cmd (uint8_t /* _nvm_cmd */) {
   /* R24 <- _nvm_cmd */
   __asm__ __volatile__ (
@@ -183,7 +183,7 @@ int main (void) {
   _PROTECTED_WRITE(WDT_CTRLA, WDT_PERIOD_1KCLK_gc);
 
   /* Enable USB peripheral power */
-  SYSCFG_VUSBCTRL = SYSCFG_USBVREG_bm;
+  SYSCFG_VUSBCTRL = EUBOOT_USB_VREG ? SYSCFG_USBVREG_bm : 0;
 
   /* Initialize USB peripherals after allowing sufficient stabilization time */
   SYS::delay_125ms();
