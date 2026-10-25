@@ -92,6 +92,9 @@ int main() {
   init(); // Interrupts are turned on just prior to init() returning.
   initVariant();
   if (!onAfterInit()) sei();  // enable interrupts.
+  #if defined(DXCORE_USB_CDC)
+    SerialUSB.begin();
+  #endif
   setup();
   for (;;) {
     loop();
@@ -101,7 +104,7 @@ int main() {
 
 
 
-#if (!defined(USING_OPTIBOOT))
+#if (!defined(USING_OPTIBOOT) && !defined(USING_EUBOOT))
 
 
 
@@ -183,7 +186,19 @@ int main() {
  **************************************************************************************************/
 
 void _initThreeStuff() __attribute__ ((naked)) __attribute__((used)) __attribute__ ((section (".init3")));
-#if (!defined(USING_OPTIBOOT))
+#if defined(USING_EUBOOT)
+  #if defined(SPM_FROM_APP)
+    #error "DxCore Flash self-programming is not supported with euboot."
+  #endif
+  void _initThreeStuff() {
+    // euboot cleared RSTFR and saved it in GPR0. Vectors start at BOOTSIZE.
+    _PROTECTED_WRITE(CPUINT_CTRLA, CPUINT_CTRLA & ~CPUINT_IVSEL_bm);
+    #if defined(LOCK_FLMAP)
+      doFLMAP();
+    #endif
+    onPreMain();
+  }
+#elif (!defined(USING_OPTIBOOT))
   #if !defined(SPM_FROM_APP)
     // If we're not doing the SPM stuff, we need only check the flags
     void _initThreeStuff() {

@@ -1183,6 +1183,19 @@ void pinConfigure(uint8_t digital_pin, uint16_t pin_config);
   #define Serial Serial0 // Error here? Check for missing ; previous line in sketch.
 #endif
 
+#if defined(DXCORE_USB_CDC)
+  #if !defined(__AVR_DU__)
+    #error "Native USB CDC requires an AVR DU device."
+  #endif
+  #ifdef __cplusplus
+    #include "SerialUSB.h"
+  #endif
+  #define SERIAL_PORT_USBVIRTUAL SerialUSB
+  #define SERIAL_PORT_MONITOR SerialUSB
+  #define SERIAL_PORT_HARDWARE Serial0
+  #define SERIAL_PORT_HARDWARE_OPEN Serial0
+#endif
+
 /* Moved from pins_arduino.h to reduce code duplication - also made better decisions
  * These serial port names are intended to allow libraries and architecture-neutral
  * sketches to automatically default to the correct port name for a particular type

@@ -124,7 +124,61 @@ avrdaopti.name=AVR DA-series (Optiboot)
 avrdbopti.name=AVR DB-series (Optiboot)
 avrddopti.name=AVR DD-series (Optiboot)
 #avrduopti.name=AVR DU-series (Optiboot)
-#avrduusb.name=AVR DU-series with USB Bootloader TBD.
+
+##########################################################################
+# AVR64DU32 Curiosity Nano: target USB CDC and euboot (Windows, IDE 2.x).
+# Fixed initial configuration. PF6 is the boot button, not hardware RESET.
+##########################################################################
+avrduusb.build.board=AVR64DU32_CNANO_USB
+avrduusb.build.core=dxcore
+avrduusb.build.mcu=avr64du32
+avrduusb.build.variant=32pin-duseries
+avrduusb.build.speed=20
+avrduusb.build.clocksource=0
+avrduusb.build.f_cpu=20000000L
+avrduusb.build.text_section_start=.text=0x0A00
+avrduusb.build.highestcb=B2
+avrduusb.build.millistimer=B1
+avrduusb.build.wiremode=MORS_SINGLE
+avrduusb.build.attachmode=-DCORE_ATTACH_ALL
+avrduusb.build.flmapopts=-DLOCK_FLMAP -DFLMAPSECTION1
+avrduusb.build.printf=
+avrduusb.build.vid=0x04D8
+avrduusb.build.pid=0x0B15
+avrduusb.build.extra_flags=-DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PF2 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=HWSERIAL1_MUX_PINSWAP_2 -DUSB_VID={build.vid} -DUSB_PID={build.pid}
+avrduusb.build.export_merged_output=false
+avrduusb.build.mcupostfix=.usb
+avrduusb.build.wireabr=
+avrduusb.build.printfabr=
+avrduusb.build.appspmabr=
+avrduusb.build.attachabr=
+avrduusb.build.flmapabr=.fld
+avrduusb.vid.0=0x04D8
+avrduusb.pid.0=0x0B15
+avrduusb.upload.tool=euboot
+avrduusb.upload.tool.serial=euboot
+avrduusb.upload.tool.default=euboot
+avrduusb.upload.protocol=jtag3updi
+avrduusb.upload.maximum_size=62976
+avrduusb.upload.maximum_data_size=8192
+avrduusb.upload.use_1200bps_touch=true
+avrduusb.upload.wait_for_upload_port=false
+avrduusb.upload.boot_vid=0x04D8
+avrduusb.upload.boot_pid=0x0B12
+avrduusb.upload.prog_interlock=
+# Do not set programmer.default here: CLI upload would select UPDI instead of euboot.
+avrduusb.bootloader.tool=avrdude
+avrduusb.bootloader.WDTCFG=0x00
+avrduusb.bootloader.BODCFG=0x00
+avrduusb.bootloader.OSCCFG=0x00
+avrduusb.bootloader.SYSCFG0=0xD1
+avrduusb.bootloader.SYSCFG1=0x08
+avrduusb.bootloader.CODESIZE=0x00
+avrduusb.bootloader.BOOTSIZE=0x05
+avrduusb.bootloader.avrdudefuse5="-Ufuse5:w:{bootloader.SYSCFG0}:m"
+avrduusb.program.avrdudefuse5="-Ufuse5:w:{bootloader.SYSCFG0}:m"
+avrduusb.bootloader.avrdudestring=-Uflash:w:{runtime.platform.path}/bootloaders/euboot/hex/euboot_LF2_SF6.hex:i
+avrduusb.name=AVR64DU32 Curiosity Nano (native USB CDC + euboot)
 #avreaopti.name=AVR EA-series (Optiboot)
 #avrebopti.name=AVR EB-series (Optiboot)
 #avrecopti.name=AVR EC-series (Optiboot)

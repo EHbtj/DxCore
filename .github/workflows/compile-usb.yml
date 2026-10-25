@@ -1,0 +1,54 @@
+name: AVR DU native USB
+
+on:
+  pull_request:
+    paths:
+      - "megaavr/cores/**"
+      - "megaavr/*.txt"
+      - "megaavr/bootloaders/euboot/**"
+      - "megaavr/tools/euboot_upload.py"
+      - "megaavr/tools/tests/**"
+      - "megaavr/extras/ci/**"
+      - "megaavr/libraries/DxCore/examples/USB/**"
+      - ".github/workflows/compile-usb.yml"
+  push:
+    paths:
+      - "megaavr/cores/**"
+      - "megaavr/*.txt"
+      - "megaavr/bootloaders/euboot/**"
+      - "megaavr/tools/euboot_upload.py"
+      - "megaavr/tools/tests/**"
+      - "megaavr/extras/ci/**"
+      - "megaavr/libraries/DxCore/examples/USB/**"
+      - ".github/workflows/compile-usb.yml"
+  workflow_dispatch:
+
+jobs:
+  usb:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Uploader and distributed asset tests
+        run: python -m unittest discover -s megaavr/tools/tests -v
+      - name: Compile native USB examples and API contract
+        uses: arduino/compile-sketches@main
+        with:
+          cli-version: "1.5.1"
+          fqbn: DxCore:megaavr:avrduusb
+          sketch-paths: |
+            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+            - megaavr/libraries/DxCore/examples/USB/SerialUSBAndUART
+            - megaavr/extras/ci/test-sketch/usb/StreamAPI
+            - megaavr/extras/ci/test-sketch/all/dummysketch
+          platforms: |
+            - source-url: http://drazzy.com/package_drazzy.com_index.json
+              name: DxCore:megaavr
+            - source-path: megaavr
+              name: DxCore:megaavr
+          libraries: |
+            -
+          enable-deltas-report: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
