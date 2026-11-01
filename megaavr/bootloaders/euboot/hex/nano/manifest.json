@@ -1,0 +1,36 @@
+{
+  "upstream": "66cdc00dac142bb1cf70f5fcbf5fbca5d45894ad",
+  "compiler": "avr-g++.exe (GCC) 7.3.0",
+  "compiler_sha256": "098f5708a5d70e3abb6b504145b46c9320ef4b6d43b6b8f1c09b431e611d543b",
+  "sources": {
+    "build_generic.py": "c6f0b561dbff97503b4c8612987622068914fef73a20f08b811cfae0327aa855",
+    "build_support/api/btools.h": "2322ed3407d8bfa0f0a23ba798e3421fa052a5e38583ff498f45fc0671e561a6",
+    "build_support/api/capsule.h": "9340cfb95d59903a38beea50cc194ac5acb7e662286f7b70a130a05839ab37c9",
+    "build_support/api/macro_api.h": "cf6e2e7e13b6fc8835a554beeeef362b7d467a6e1f86d6c7a283042f0fa36b14",
+    "build_support/api/memspace.h": "b9be15c46c138c4f9f8c0cd8dc164009f69dbd7463cbae7aabd805dd758dc264",
+    "build_support/peripheral.h": "0b6b21a77d157348d52858568e9f66f3f2616a7bca911d3098bd83c33ebea949",
+    "build_support/variant.h": "8ea05791b7487cb5f04a76db17017274a31c050483eabc0005ba1c7d68736783",
+    "src/configuration.h": "b2bab44a77154db836ade1ed62002eeacc5b1ac47f4b9fa50bcdf3f9c51a94b0",
+    "src/fuse.c": "3b3d3dbd1761325ebdc390790cdfbcf20daf6f89d275be1249d6974c30063ee7",
+    "src/jtag.cpp": "d6e7561bf2f8afdf4091aece48e67c821f3250906a8dddac2a5b036814c7c9c6",
+    "src/main.cpp": "41fd33796b4d220e8f8b11c726f13f3132c0f30d8bfccc1edb6d97abae9c0b4c",
+    "src/nvmv4.cpp": "bb43055745e682f2cbcc90aa3e9a747b529a6b626843d2d461b2c71e5430a274",
+    "src/prototype.h": "9a7aecf01ea55e991bb17c5b2c2eb540f52ed4f5d84c36a87d4f208e226df2c7",
+    "src/sys.cpp": "4f989c27d5bf6516de4eb2ebdbcb195632a76c6b35e813c9c759318696cbf0f3",
+    "src/usb.cpp": "045b6401be7926926be654f4af40e0b5e6338ac505edcc7f6c64250d5ce0087f"
+  },
+  "device_headers": {
+    "avr64du32": "ec8cfd7bf1a9f0e16cad4447f0a1b3b5f7304656a7c09fcb2495b02e13d957c4"
+  },
+  "images": {
+    "euboot_avr64du32_LF2_SF6_regulator.hex": {
+      "mcu": "avr64du32",
+      "power": "regulator",
+      "bytes": 2400,
+      "ram_start": 24576,
+      "ramend": 32767,
+      "static_ram_bytes": 930,
+      "sha256": "7ec30b477def4984f5e0a4f57ace203742571963772bdf862f43c6177c205c74"
+    }
+  }
+}

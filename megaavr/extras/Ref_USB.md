@@ -6,7 +6,8 @@ Nano は **AVR64DU32 Curiosity Nano (native USB CDC + euboot)**、
 IC 単体は **AVR DU-series (native USB CDC + euboot, standalone)** を選択します。
 共通で内蔵 20 MHz、TCB1 による millis()/micros()、PF6 の BOOT 入力を使用します。
 状態 LED は Nano が PF2、汎用版が PA7 です。
-この機能は実験的です。ビルドとホスト側のテストに加え、下記の実機確認が必要です。
+この機能は実験的です。Nano の基本通信と自動 USB 書き込みは実機確認済みです。
+確認した範囲と未確認項目は「検証」を参照してください。IC 単体はビルド確認のみです。
 
 ## できること
 
@@ -62,6 +63,13 @@ arduino-cli burn-bootloader --fqbn DxCoreUSB:megaavr:avrduusb --programmer nedbg
 BOOTSIZE=5、CODESIZE=0、SYSCFG0=0xD1 とし、UPDI を維持して PF6 を入力にします。
 euboot 自体の再導入・fuse の変更・UPDI からの復旧にはデバッガー側 USB を使います。
 
+Nano 用の配布 HEX は hex/nano 以下のローカル再生成版です。
+USB RESUME を切断と判断して再起動する処理を削除し、Windows の HID 休止復帰でも
+待機状態を保つよう変更しています。元の HEX は比較用として保持しています。
+旧版を導入済みの場合は、この変更を適用するためにブートローダーを再書き込みします。
+この版で Windows 実機の USB 書き込み・CDC 通信・自動書き込みを確認しています。
+休止復帰そのものの試験と、各変更が初期の切断症状に与えた影響の分離は未実施です。
+
 ## 最初のスケッチと手動復旧
 
 まだ CDC スケッチが入っていない場合、ターゲット側の COM ポートはありません。
@@ -85,6 +93,14 @@ SerialUSB.end() を呼んだ場合、割り込みを停止した場合、スケ�
 書き込み中は CDC が消えて HID に切り替わるため、新しい COM ポートは待ちません。
 更新後に CDC が再認識されたらシリアルモニターを開きます。
 COM 番号が変わった場合は選び直してください。
+
+デバッガー側の COM ポートは UART 用です。1200 bps による自動移行には、
+ターゲット側 USB の SerialUSB が提供する COM ポートを選択してください。
+euboot の手動待機中は HID として認識され、COM ポートは現れません。
+アップローダーは一時的な AVRDUDE 追加設定で USB VID/PID を指定します。
+AVRDUDE 8.1 は usb:VID:PID の HID オープンに失敗すると、同じ文字列を
+シリアル番号として再解釈して既定のデバイス ID を探すため、エラーが紛らわしくなります。
+ポートは usb とし、jtag3updi を継承した専用設定を使用して、この再解釈を避けます。
 
 ## スケッチ API
 
@@ -144,6 +160,24 @@ DxCore の Flash ライブラリーによる自己書き込みは、このボー
 
 ## 検証
 
+2026-11-01、ユーザーの AVR64DU32 Curiosity Nano 1台で、Windows / Arduino IDE 2.x
+による次の動作を確認しました。書き込み部分は提示された AVRDUDE ログ、
+エコー・LED・自動書き込みはユーザーの実機操作報告に基づきます。
+
+- 内蔵デバッガーから fuse 設定と修正版 euboot の 2,400 バイトを書き込み・検証。
+- SW0 を押した電源投入で euboot を起動し、TARGET 側 USB から通常の IDE 書き込みに成功。
+- AVRDUDE 8.1 / dxcore_euboot で SerialUSBEcho の 4,066 バイトを
+  0x0A00..0x19E1 に書き込み・検証。
+- スケッチ起動後に CDC の COM ポートが出現。シリアルモニターで送信文字が返り、
+  改行で PF2 の LED が切り替わることを確認。
+- USB を接続したまま、SW0 を押さずに通常の IDE 書き込みに成功。
+  この操作では TARGET 側 CDC のポートを選択。
+
+ホスト側は Python 3.15.1 を使用。ブートローダー導入時の AVRDUDE は 8.0-arduino.1、
+USB スケッチ書き込みは DxCore 付属の 8.1 です。
+実機は AVR64DU32 revision 1.3、内蔵デバッガー FW 1.34 (rel. 89)、約5 Vで動作しました。
+この結果は、他の品種・電源方式・OS や、下記の耐久・復旧試験まで保証するものではありません。
+
 ホスト側の回帰テスト:
 
 ```powershell
@@ -159,7 +193,7 @@ python megaavr/extras/ci/verify_usb_build.py path/to/SerialUSBEcho.ino.elf
 アップローダー単体の --dry-run は HEX を検査し、AVRDUDE コマンドだけを表示します。
 デバイスへの接続・書き込みは行いません。
 
-実機での完了条件:
+実機での完了条件（上記の基本動作以外は未確認）:
 
 - 初回 UPDI 導入、SW0 からの初回更新、通常の IDE 書き込みを確認。
 - Windows 標準 CDC ドライバーで認識し、シリアルモニターを開閉して送受信できる。

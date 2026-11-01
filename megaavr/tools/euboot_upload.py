@@ -12,6 +12,7 @@ from ctypes import wintypes
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import time
 
 APP_START = 0x0A00
@@ -150,23 +151,44 @@ def wait_for_bootloader(vid, pid, timeout=BOOT_TIMEOUT):
         time.sleep(0.1)
 
 
+def programmer_config(vid, pid):
+    """Select euboot explicitly, without AVRDUDE's VID/PID-to-serial fallback."""
+    if not (0 <= vid <= 0xFFFF and 0 <= pid <= 0xFFFF):
+        raise ValueError("USB VID and PID must be 16-bit values")
+    return (
+        'programmer parent "jtag3updi"\n'
+        '    id = "dxcore_euboot";\n'
+        '    desc = "AVR DU euboot HID";\n'
+        '    usbvid = 0x%04x;\n'
+        '    usbpid = 0x%04x;\n'
+        ';\n'
+    ) % (vid, pid)
+
+
 def upload(args):
     count = validate_hex(args.hex, args.mcu)
-    command = [
-        args.avrdude, "-C" + args.config, "-p" + args.mcu, "-cjtag3updi",
-        "-Pusb:%04x:%04x" % (args.vid, args.pid), "-D",
-        "-Uflash:w:" + str(Path(args.hex).resolve()) + ":i",
-    ]
-    if args.verbose:
-        command.append("-v")
-    if args.dry_run:
-        print("Validated %d application bytes. Upload command:" % count)
-        print(subprocess.list2cmdline(command))
-        return 0
-    print("Waiting for euboot HID %04X:%04X..." % (args.vid, args.pid), flush=True)
-    wait_for_bootloader(args.vid, args.pid)
-    print("Writing and verifying %d application bytes..." % count, flush=True)
-    result = subprocess.run(command, check=False, timeout=120).returncode
+    config_text = programmer_config(args.vid, args.pid)
+    # Close the file before AVRDUDE opens it (required on Windows), and retain
+    # it until the child exits. Never modify the installed avrdude.conf.
+    with tempfile.TemporaryDirectory(prefix="dxcore-euboot-") as directory:
+        extra_config = Path(directory) / "euboot.conf"
+        extra_config.write_text(config_text, encoding="ascii")
+        command = [
+            args.avrdude, "-C" + args.config, "-C+" + str(extra_config),
+            "-p" + args.mcu, "-cdxcore_euboot", "-Pusb", "-D",
+            "-Uflash:w:" + str(Path(args.hex).resolve()) + ":i",
+        ]
+        if args.verbose:
+            command.append("-v")
+        if args.dry_run:
+            print("Temporary programmer configuration:\n" + config_text)
+            print("Validated %d application bytes. Upload command:" % count)
+            print(subprocess.list2cmdline(command))
+            return 0
+        print("Waiting for euboot HID %04X:%04X..." % (args.vid, args.pid), flush=True)
+        wait_for_bootloader(args.vid, args.pid)
+        print("Writing and verifying %d application bytes..." % count, flush=True)
+        result = subprocess.run(command, check=False, timeout=120).returncode
     if result:
         print("AVRDUDE failed; no automatic retry. " + RECOVERY, file=sys.stderr)
     return result

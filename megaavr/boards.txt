@@ -178,7 +178,7 @@ avrduusb.bootloader.CODESIZE=0x00
 avrduusb.bootloader.BOOTSIZE=0x05
 avrduusb.bootloader.avrdudefuse5="-Ufuse5:w:{bootloader.SYSCFG0}:m"
 avrduusb.program.avrdudefuse5="-Ufuse5:w:{bootloader.SYSCFG0}:m"
-avrduusb.bootloader.avrdudestring=-Uflash:w:{runtime.platform.path}/bootloaders/euboot/hex/euboot_LF2_SF6.hex:i
+avrduusb.bootloader.avrdudestring=-Uflash:w:{runtime.platform.path}/bootloaders/euboot/hex/nano/euboot_avr64du32_LF2_SF6_regulator.hex:i
 avrduusb.name=AVR64DU32 Curiosity Nano (native USB CDC + euboot)
 
 # Standalone 28/32-pin DU devices. PA7 LED, active-low PF6 BOOT, UPDI retained.

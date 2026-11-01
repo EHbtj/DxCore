@@ -3,10 +3,20 @@
 This directory vendors askn37/euboot at commit
 66cdc00dac142bb1cf70f5fcbf5fbca5d45894ad (firmware 3.72.50).
 LICENSE, the upstream Makefile, CRC generator and documentation are retained.
-The PF2 LED / PF6 switch Curiosity Nano HEX is unmodified.
-Standalone 28/32-pin images are generated from locally adapted sources:
+The historical PF2 LED / PF6 switch Curiosity Nano HEX is retained unmodified
+at hex/euboot_LF2_SF6.hex for provenance. The Nano board now selects the locally
+rebuilt hex/nano/euboot_avr64du32_LF2_SF6_regulator.hex (2,400 bytes).
+Nano and standalone 28/32-pin images are generated from locally adapted sources:
 configuration.h selects the internal-regulator/external-VUSB mode, and nvm_cmd
 uses .trampolines so the fixed reset/SPM ABI is independent of LTO function order.
+usb.cpp preserves the USB session on RESUME instead of rebooting: Windows can
+resume an idle HID device when an application opens it. Configuration descriptor
+bmAttributes also sets the mandatory bit 7. On 2026-11-01 the user confirmed
+installation of the 2,400-byte Nano image, a manual USB sketch upload with
+AVRDUDE 8.1, CDC echo/LED operation, and an automatic upload without SW0 on
+one Windows / Arduino IDE 2.x setup. These observations do not isolate which
+change resolved the initial disconnect; sleep/resume and stress/recovery tests
+remain outstanding. See ../../extras/Ref_USB.md for the validation record.
 
 The Intel HEX blob matches upstream Git blob
 9abf09a11cda4b84f36048df285749b5a50569ad.
@@ -44,8 +54,8 @@ the distributed asset tests and real-device recovery/upload checks.
 
 An exact byte-for-byte rebuild also requires the original SDK/toolchain
 revisions; the upstream repository does not lock those dependencies.
-For installation of this fixed version, use the supplied verified HEX rather
-than rebuilding with an arbitrary newer compiler.
+The historical image is useful for comparison. Normal Nano installation now
+uses the adapted image described below, with the same fuse and application layout.
 
 ## Standalone 28/32-pin builds
 
@@ -60,6 +70,8 @@ python build_generic.py --toolchain /path/to/avr-gcc/bin --output /path/to/build
 ```
 
 Add --write-assets to update hex/generic and its manifest after validation.
+Add --nano to build only the Nano PF2 LED / PF6 switch image; with --write-assets
+this updates hex/nano and its separate manifest. The historical HEX is untouched.
 The script rejects images larger than 2560 bytes, changed reset/SPM ABI,
 RAM that needs CRT initialization, and workspace placed outside the target SRAM.
 The generated images use PA7 for the LED and PF6 for the active-low BOOT button.
@@ -83,8 +95,14 @@ status transfer, waits 50 USB frames, detaches, clears the SRAM-top marker
 expected by this euboot revision and issues a software reset. It performs no
 Arduino delay() call inside a USB ISR.
 
-The uploader uses AVRDUDE jtag3updi over HID (VID:PID 04d8:0b12), with -D and
-verification enabled. It validates the application HEX before contacting
+The uploader uses AVRDUDE's jtag3updi backend over HID (VID:PID 04d8:0b12), with
+-D and verification enabled. A temporary additional configuration inherits
+jtag3updi as dxcore_euboot and sets usbvid/usbpid explicitly; the port is usb.
+AVRDUDE 8.1's HID backend can try usb:VID:PID directly, but after hid_open fails
+it falls back to treating that suffix as a serial-number filter on the default
+programmer IDs. The explicit configuration avoids this misleading fallback;
+it does not by itself repair a HID device that cannot be opened.
+It validates the application HEX before contacting
 hardware, waits at most ten seconds for a single target, and never retries a
 failed flash operation.
 

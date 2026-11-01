@@ -51,7 +51,7 @@ namespace USB {
   const uint8_t PROGMEM current_descriptor[] = {
     /* This descriptor is almost identical to the Xplained Mini series. */
     /* It does not allow for an dWire gateway. */
-    0x09, 0x02, 0x29, 0x00, 0x01, 0x01, 0x00, 0x00, 0x32, /* Information Set#1 */
+    0x09, 0x02, 0x29, 0x00, 0x01, 0x01, 0x00, 0x80, 0x32, /* Information Set#1 */
     0x09, 0x04, 0x00, 0x00, 0x02, 0x03, 0x00, 0x00, 0x00, /* Interface #0 HID  */
     0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x23, 0x00, /*   HID using       */
     0x07, 0x05, 0x02, 0x03, 0x40, 0x00, 0x01,             /*   EP_DPO_OUT 0x02 */
@@ -317,17 +317,10 @@ namespace USB {
   void handling_bus_events (void) {
     uint8_t busstate = USB0_INTFLAGSA;
     USB0_INTFLAGSA = busstate;
-    if (bit_is_set(busstate, USB_RESUME_bp)) {
-      /* This implementation does not transition to power saving mode. */
-      /* This is only passed when the USB cable is unplugged. */
-      if (bit_is_set(GPCONF, GPCONF_USB_bp)) {
-        D1PRINTF("<BUS=%02X>\r\n", busstate);
-        DFLUSH();
-        /* System reboot */
-        SYS::reboot();
-      }
-      bit_set(busstate, USB_RESET_bp);
-    }
+    // RESUME also occurs when Windows wakes an idle HID device. Preserve its
+    // address, configuration and endpoints; it is not a cable-removal signal.
+    // The polling loop keeps USB powered during suspend. A real bus RESET
+    // still reinitializes enumeration below; cold unplug removes target power.
     if (bit_is_set(busstate, USB_RESET_bp)) {
       setup_device(false);
     }

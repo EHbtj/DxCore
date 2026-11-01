@@ -67,6 +67,7 @@ class USBAssetTests(unittest.TestCase):
                 self.assertLessEqual(len(image), 2560)
                 self.assertEqual(int.from_bytes(image[:2], "little") & 0xF000, 0xC000)
                 self.assertEqual(image[2:14], bytes.fromhex("6193089581910895f8950895"))
+                self.assertIn(bytes.fromhex("090229000101008032"), image)
                 expected_start = 0x6000 if "64" in metadata["mcu"] else 0x7000
                 self.assertEqual(metadata["ram_start"], expected_start)
                 self.assertEqual(metadata["ramend"], 0x7FFF)
@@ -74,6 +75,29 @@ class USBAssetTests(unittest.TestCase):
         for relative, expected_hash in manifest["sources"].items():
             content = (BOOT / relative).read_bytes().replace(b"\r\n", b"\n")
             self.assertEqual(hashlib.sha256(content).hexdigest(), expected_hash, relative)
+
+    def test_nano_board_selects_reproducible_local_bootloader(self):
+        folder = BOOT / "hex/nano"
+        manifest = json.loads((folder / "manifest.json").read_text())
+        self.assertEqual(len(manifest["images"]), 1)
+        filename, metadata = next(iter(manifest["images"].items()))
+        self.assertEqual(filename, "euboot_avr64du32_LF2_SF6_regulator.hex")
+        self.assertEqual(metadata["mcu"], "avr64du32")
+        self.assertEqual(metadata["power"], "regulator")
+        image = generic.image_bytes(folder / filename)
+        self.assertEqual(hashlib.sha256(image).hexdigest(), metadata["sha256"])
+        self.assertEqual(len(image), metadata["bytes"])
+        self.assertLessEqual(len(image), 2560)
+        self.assertEqual(image[2:14], bytes.fromhex("6193089581910895f8950895"))
+        self.assertIn(bytes.fromhex("090229000101008032"), image)
+        self.assertEqual(metadata["ram_start"], 0x6000)
+        self.assertEqual(metadata["ramend"], 0x7FFF)
+        self.assertLess(metadata["static_ram_bytes"], 8192 - 256)
+        for relative, expected_hash in manifest["sources"].items():
+            content = (BOOT / relative).read_bytes().replace(b"\r\n", b"\n")
+            self.assertEqual(hashlib.sha256(content).hexdigest(), expected_hash, relative)
+        board = (PLATFORM / "boards.txt").read_text(encoding="utf-8")
+        self.assertIn("avrduusb.bootloader.avrdudestring=-Uflash:w:{runtime.platform.path}/bootloaders/euboot/hex/nano/" + filename + ":i", board)
 
     def test_generic_board_combinations_select_matching_boot_and_memory(self):
         entries = {}

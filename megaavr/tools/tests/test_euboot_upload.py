@@ -118,10 +118,59 @@ class UploaderTests(unittest.TestCase):
         command = run.call_args.args[0]
         self.assertIn("-D", command)
         self.assertNotIn("-V", command)
-        self.assertIn("-cjtag3updi", command)
-        self.assertIn("-Pusb:04d8:0b12", command)
+        self.assertIn("-cdxcore_euboot", command)
+        self.assertIn("-Pusb", command)
+        self.assertFalse(any(item.startswith("-Pusb:") for item in command))
+        self.assertIn("-C" + args.config, command)
+        self.assertTrue(any(item.startswith("-C+") for item in command))
         self.assertIn("-Uflash:w:" + str(self.image.resolve()) + ":i", command)
         self.assertNotIn("shell", run.call_args.kwargs)
+
+    def test_programmer_configuration_is_available_to_child_and_removed_afterwards(self):
+        args = self.args()
+        configs = []
+
+        def inspect_config(command, **kwargs):
+            filename = Path(next(item[3:] for item in command if item.startswith("-C+")))
+            configs.append(filename)
+            text = filename.read_text(encoding="ascii")
+            self.assertIn('programmer parent "jtag3updi"', text)
+            self.assertIn('id = "dxcore_euboot";', text)
+            self.assertIn("usbvid = 0x04d8;", text)
+            self.assertIn("usbpid = 0x0b12;", text)
+            return Mock(returncode=0)
+
+        with patch.object(uploader, "wait_for_bootloader"), \
+             patch.object(uploader.subprocess, "run", side_effect=inspect_config):
+            self.assertEqual(uploader.upload(args), 0)
+        self.assertEqual(len(configs), 1)
+        self.assertFalse(configs[0].exists())
+
+    def test_custom_usb_ids_are_used_in_configuration_and_hid_search(self):
+        args = self.args()
+        args.vid, args.pid = 0x1234, 0x5678
+
+        def inspect_config(command, **kwargs):
+            filename = next(item[3:] for item in command if item.startswith("-C+"))
+            text = Path(filename).read_text(encoding="ascii")
+            self.assertIn("usbvid = 0x1234;", text)
+            self.assertIn("usbpid = 0x5678;", text)
+            return Mock(returncode=0)
+
+        with patch.object(uploader, "wait_for_bootloader") as wait, \
+             patch.object(uploader.subprocess, "run", side_effect=inspect_config):
+            self.assertEqual(uploader.upload(args), 0)
+        wait.assert_called_once_with(0x1234, 0x5678)
+
+    def test_invalid_usb_ids_are_rejected_before_contacting_hardware(self):
+        for vid, pid in ((-1, 0xB12), (0x10000, 0xB12), (0x4D8, -1), (0x4D8, 0x10000)):
+            args = self.args()
+            args.vid, args.pid = vid, pid
+            with self.subTest(vid=vid, pid=pid), \
+                 patch.object(uploader, "wait_for_bootloader") as wait, \
+                 self.assertRaisesRegex(ValueError, "16-bit"):
+                uploader.upload(args)
+            wait.assert_not_called()
 
     def test_flash_failure_is_returned_without_retry(self):
         args = self.args()
