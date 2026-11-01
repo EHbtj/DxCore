@@ -3,21 +3,22 @@
   "compiler": "avr-g++.exe (GCC) 7.3.0",
   "compiler_sha256": "098f5708a5d70e3abb6b504145b46c9320ef4b6d43b6b8f1c09b431e611d543b",
   "sources": {
-    "build_generic.py": "c6f0b561dbff97503b4c8612987622068914fef73a20f08b811cfae0327aa855",
+    "build_generic.py": "257258c54f64c1f17bba81f5530f2a880bbaf845f02fe16209a4cb9a242f37c9",
     "build_support/api/btools.h": "2322ed3407d8bfa0f0a23ba798e3421fa052a5e38583ff498f45fc0671e561a6",
     "build_support/api/capsule.h": "9340cfb95d59903a38beea50cc194ac5acb7e662286f7b70a130a05839ab37c9",
     "build_support/api/macro_api.h": "cf6e2e7e13b6fc8835a554beeeef362b7d467a6e1f86d6c7a283042f0fa36b14",
     "build_support/api/memspace.h": "b9be15c46c138c4f9f8c0cd8dc164009f69dbd7463cbae7aabd805dd758dc264",
     "build_support/peripheral.h": "0b6b21a77d157348d52858568e9f66f3f2616a7bca911d3098bd83c33ebea949",
     "build_support/variant.h": "8ea05791b7487cb5f04a76db17017274a31c050483eabc0005ba1c7d68736783",
-    "src/configuration.h": "b2bab44a77154db836ade1ed62002eeacc5b1ac47f4b9fa50bcdf3f9c51a94b0",
-    "src/fuse.c": "a31d6a8706fb7426cab5b1fb560fac6e92ead4b17a20acd185fc524d22502ed8",
-    "src/jtag.cpp": "eb38f634c5de9f682f2e30a3e7a7ef0e79c187784e9c2502a802fc0ac46f55ef",
+    "src/configuration.h": "c5deca1dcbf42ba644157c45fbd8b28dc3f8099d5208e44eedc43ea71e28e404",
+    "src/data_space.h": "1f3bf42564e79a213c3dfccf43f98e4e359b3f29efac03cdae2290526c7c08f6",
+    "src/fuse.c": "277dec737c725387f54eb146e03e9866e20632261090d8210254cca0798f1d2c",
+    "src/jtag.cpp": "5ae3bacebdfb6d6bbdbcf138e1fdc86a587a217e13f0b8c201814b13f25e45b4",
     "src/main.cpp": "b4ae31aef609ded25f71441cd32b265b2c57bc500b8eeab16a0357fea594f708",
-    "src/nvmv4.cpp": "6ddde7e3aed297ab2c9a710e6c34f99f4fe6d63beed2c9c7d605fbcf74b8dfac",
+    "src/nvmv4.cpp": "3a9212bb9d54cc4687726e5e0deebb52abb99be4a276d61f37323456434506cd",
     "src/prototype.h": "0dc02cc9b0d3c02702e58d31b060784c9311c4b9847664c0fb414455bb581353",
     "src/sys.cpp": "9fc7a6cae5c152f825dee6bf44c80425c7c8916a4799713ade1656305194deb2",
-    "src/usb.cpp": "69a7b216b8dfe03a156858725a4b98fb6e4af14c7ac8082ea67942472d4c0bef"
+    "src/usb.cpp": "5fbc26606747cc2cba114f9b6e503286d201c3e740b5936fb010dc2e2893d13a"
   },
   "device_headers": {
     "avr64du32": "ec8cfd7bf1a9f0e16cad4447f0a1b3b5f7304656a7c09fcb2495b02e13d957c4"
@@ -26,11 +27,12 @@
     "euboot_avr64du32_LF2_SF6_regulator.hex": {
       "mcu": "avr64du32",
       "power": "regulator",
-      "bytes": 2400,
+      "bytes": 2848,
+      "app_start": 3072,
       "ram_start": 24576,
       "ramend": 32767,
-      "static_ram_bytes": 930,
-      "sha256": "7ec30b477def4984f5e0a4f57ace203742571963772bdf862f43c6177c205c74"
+      "static_ram_bytes": 882,
+      "sha256": "71a92bdfd62d14911aa5d06873f1ef44872ddb175d507da0d3ce9cb3f0864eb6"
     }
   }
 }

@@ -30,21 +30,22 @@ class UploaderTests(unittest.TestCase):
         return str(self.image)
 
     def valid_image(self):
-        return self.write_image(record(0xA00, 0, b"\x00\x00"), record(0, 1))
+        return self.write_image(record(uploader.APP_START, 0, b"\x00\x00"), record(0, 1))
 
     def test_valid_application_and_last_flash_byte(self):
-        name = self.write_image(record(0xA00, 0, b"\x01"), record(0xFFFF, 0, b"\x02"), record(0, 1))
+        name = self.write_image(record(uploader.APP_START, 0, b"\x01"), record(0xFFFF, 0, b"\x02"), record(0, 1))
         self.assertEqual(uploader.validate_hex(name), 2)
 
     def test_bootloader_and_flash_overflow_are_rejected(self):
-        for address, payload in ((0, b"\x01"), (0x9FF, b"\x01\x02"), (0xFFFF, b"\x01\x02")):
+        for address, payload in ((0, b"\x01"), (0xA00, b"\x01"),
+                                 (uploader.APP_START - 1, b"\x01\x02"), (0xFFFF, b"\x01\x02")):
             with self.subTest(address=address):
                 name = self.write_image(record(address, 0, payload), record(0, 1))
                 with self.assertRaises(ValueError):
                     uploader.validate_hex(name)
 
     def test_extended_address_cannot_bypass_flash_limit(self):
-        name = self.write_image(record(0, 4, b"\x00\x01"), record(0xA00, 0, b"\x01"), record(0, 1))
+        name = self.write_image(record(0, 4, b"\x00\x01"), record(uploader.APP_START, 0, b"\x01"), record(0, 1))
         with self.assertRaises(ValueError):
             uploader.validate_hex(name)
 
@@ -76,13 +77,13 @@ class UploaderTests(unittest.TestCase):
             self.assertIn("-p" + mcu, run.call_args.args[0])
 
     def test_invalid_checksum_and_missing_eof_are_rejected(self):
-        for content in (":020A00000000F5", record(0xA00, 0, b"\x01"), record(0, 1)):
+        for content in (":020A00000000F5", record(uploader.APP_START, 0, b"\x01"), record(0, 1)):
             self.image.write_text(content, encoding="ascii")
             with self.subTest(content=content), self.assertRaises(ValueError):
                 uploader.validate_hex(self.image)
 
     def test_no_records_after_eof(self):
-        name = self.write_image(record(0xA00, 0, b"\x01"), record(0, 1), record(0xA01, 0, b"\x01"))
+        name = self.write_image(record(uploader.APP_START, 0, b"\x01"), record(0, 1), record(uploader.APP_START + 1, 0, b"\x01"))
         with self.assertRaises(ValueError):
             uploader.validate_hex(name)
 

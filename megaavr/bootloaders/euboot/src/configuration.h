@@ -30,7 +30,7 @@
  *
  *  If enabled, the application start address will be set to a different value than normal.
  *
- *    NDEBUG  0x0A00  (2560)  BOOTSIZE= 5 sectors
+ *    NDEBUG  0x0C00  (3072)  BOOTSIZE= 6 sectors (DxCore hardened builds)
  *    DEBUG1  0x2000  (8192)  BOOTSIZE=16 sectors
  *
  *  The DEBUG=0 output is not normally used,

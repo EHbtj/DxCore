@@ -164,6 +164,7 @@ namespace USB {
       USB0_CTRLB = USB_ATTACH_bm;
       GPCONF = 0;
       _set_config = 0;
+      _packet_chunks = _packet_endfrag = _jtag_arch = _jtag_conn = 0;
       memcpy_P(&EP_TABLE, &ep_init, sizeof(EP_TABLE_t));
       USB0_CTRLA = USB_ENABLE_bm | (USB_ENDPOINTS_MAX - 1);
     }

@@ -15,7 +15,7 @@ import sys
 import tempfile
 import time
 
-APP_START = 0x0A00
+APP_START = 0x0C00
 FLASH_SIZES = {
     "avr64du32": 0x10000,
     "avr32du32": 0x8000,

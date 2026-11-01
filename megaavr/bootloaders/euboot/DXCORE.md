@@ -5,7 +5,8 @@ This directory vendors askn37/euboot at commit
 LICENSE, the upstream Makefile, CRC generator and documentation are retained.
 The historical PF2 LED / PF6 switch Curiosity Nano HEX is retained unmodified
 at hex/euboot_LF2_SF6.hex for provenance. The Nano board now selects the locally
-rebuilt hex/nano/euboot_avr64du32_LF2_SF6_regulator.hex (2,400 bytes).
+rebuilt hex/nano/euboot_avr64du32_LF2_SF6_regulator.hex.
+The hardened Nano image is 2,848 bytes; standalone images are 2,850..2,878 bytes.
 Nano and standalone 28/32-pin images are generated from locally adapted sources:
 configuration.h selects the internal-regulator/external-VUSB mode, and nvm_cmd
 uses .trampolines so the fixed reset/SPM ABI is independent of LTO function order.
@@ -18,9 +19,14 @@ one Windows / Arduino IDE 2.x setup. These observations do not isolate which
 change resolved the initial disconnect; sleep/resume and stress/recovery tests
 remain outstanding. See ../../extras/Ref_USB.md for the validation record.
 
-Local sources also follow DxCore's AStyle 3.1 formatting rules. After formatting
-and comment spelling corrections, all nine local images were rebuilt and matched
-the distributed HEX payloads byte for byte; their source manifests were refreshed.
+The current local builds harden HID fragment ordering/lengths, stop exhausted
+responses, validate memory lengths and received write payloads, restrict writes
+to application flash/EEPROM/USERROW/BOOTROW, and return RSP3_FAILED for refused
+requests. Flash aliases use the same application-region protection. Parameter
+headers and version-table reads are bounded too; unused parameter data is zeroed.
+The native regression harness compiles the actual JTAG/NVM handlers for 32/64 KiB
+targets with register/address-space stubs. Linux CI also enables ASan/UBSan.
+This does not validate USB timing or physical NVM behavior.
 
 The Intel HEX blob matches upstream Git blob
 9abf09a11cda4b84f36048df285749b5a50569ad.
@@ -29,8 +35,13 @@ cbfef177a209fc62970cb2fb55ee1a56400deacea618f9aeb7dceaab5a6bef18.
 The HEX contains 2,428 bytes at flash 0x0000..0x097b, including the upstream
 CRC. The full reserved region extends through 0x09ff.
 
-The USB board reserves five 512-byte sectors (BOOTSIZE=5), links the application
-at 0x0a00 and preserves UPDI. Its PF6 switch uses GPIO mode (SYSCFG0=0xd1).
+Current local builds reserve six 512-byte sectors (BOOTSIZE=6), link the application
+at 0x0c00 and preserve UPDI. Their extra checks exceed the old 2,560-byte reservation.
+Reinstall the bootloader and fuses over UPDI and rebuild the sketch when upgrading
+from the five-sector version. Do not mix old/new bootloaders, fuses and sketches.
+The earlier 2,400-byte image's real-device results above do not validate this
+hardened version; its USB, stress and recovery tests still need real hardware.
+Its PF6 switch uses GPIO mode (SYSCFG0=0xd1).
 Do not substitute an Optiboot image or a debug euboot image: their application
 origins and startup conventions differ.
 
@@ -59,7 +70,7 @@ the distributed asset tests and real-device recovery/upload checks.
 An exact byte-for-byte rebuild also requires the original SDK/toolchain
 revisions; the upstream repository does not lock those dependencies.
 The historical image is useful for comparison. Normal Nano installation now
-uses the adapted image described below, with the same fuse and application layout.
+uses the adapted image described below, with a six-sector application layout.
 
 ## Standalone 28/32-pin builds
 
@@ -76,7 +87,7 @@ python build_generic.py --toolchain /path/to/avr-gcc/bin --output /path/to/build
 Add --write-assets to update hex/generic and its manifest after validation.
 Add --nano to build only the Nano PF2 LED / PF6 switch image; with --write-assets
 this updates hex/nano and its separate manifest. The historical HEX is untouched.
-The script rejects images larger than 2560 bytes, changed reset/SPM ABI,
+The script rejects images larger than 3072 bytes, changed reset/SPM ABI,
 RAM that needs CRT initialization, and workspace placed outside the target SRAM.
 The generated images use PA7 for the LED and PF6 for the active-low BOOT button.
 No CRC is appended to these generic images; the board fuses disable CRCSCAN.
@@ -84,7 +95,7 @@ No CRC is appended to these generic images; the board fuses disable CRCSCAN.
 AVR64DU SRAM starts at 0x6000, AVR32DU SRAM at 0x7000; both end at 0x7fff.
 Link separately for each capacity so global workspace addresses are valid.
 The manifest records source hashes, compiler/device-header hashes and image
-hashes. All generic boards reserve five sectors and preserve UPDI.
+hashes and application origin. All generic boards reserve six sectors and preserve UPDI.
 External VUSB uses USBVREG=0 and SYSCFG1=0x00; internal regulation uses
 USBVREG=1 and SYSCFG1=0x08. Burn the matching bootloader whenever changing mode.
 

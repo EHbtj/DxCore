@@ -31,6 +31,20 @@ env:
   ARDUINO_DIRECTORIES_DOWNLOADS: ${{ github.workspace }}/.usb-ci/downloads
 
 jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Exercise bootloader handlers with address and undefined-behavior sanitizers
+        env:
+          CXX: g++
+          EUBOOT_REQUIRE_COMPILER: "1"
+          EUBOOT_SANITIZE: "1"
+        run: python -m unittest discover -s megaavr/tools/tests -p test_euboot_firmware.py -v
+
   usb:
     runs-on: windows-latest
     steps:

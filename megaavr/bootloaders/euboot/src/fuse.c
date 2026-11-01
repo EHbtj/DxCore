@@ -40,7 +40,7 @@
 #if defined(DEBUG) && !defined(NDEBUG)
   #define APPSTART 16
 #else
-  #define APPSTART 5
+  #define APPSTART 6
 #endif
 
 FUSES = {

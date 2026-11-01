@@ -22,6 +22,7 @@
 #include "peripheral.h"     /* import Serial (Debug) */
 #include "configuration.h"
 #include "prototype.h"
+#include "data_space.h"
 
 /*
  * NOTE:
@@ -67,16 +68,23 @@ namespace NVM::V4 {
 
   size_t read_memory(void) {
     uint8_t   m_type = packet.out.bMType;
-    uint16_t _dwAddr = packet.out.dwAddr;     /* The high-order word is ignored. */
+    uint16_t _dwAddr = packet.out.dwAddr;
     size_t  _wLength = packet.out.dwLength;
+    uint16_t _dwEnd = _dwAddr + _wLength - 1;
     if (m_type == 0xD3) {
       /* MTYPE_SIB */
+      if (_dwAddr || _wLength > sizeof(_sib)) {
+        return 0;
+      }
       memcpy_P(&packet.in.data[0], &_sib, _wLength);
     } else if (m_type == 0xB0 || m_type == 0xC0) {
       /* MTYPE_FLASH_PAGE (PROGMEM) */
+      if (_dwEnd > PROGMEM_END) {
+        return 0;
+      }
       memcpy_P(&packet.in.data[0], (void *)_dwAddr, _wLength);
     } else {
-      memcpy(&packet.in.data[0], (void *)_dwAddr, _wLength);
+      memcpy(&packet.in.data[0], data_pointer(_dwAddr), _wLength);
     }
     return _wLength + 1;
   }
@@ -105,7 +113,7 @@ namespace NVM::V4 {
     if (e_type == 0x07) {
       /* XMEGA_ERASE_USERSIG */
       nvm_cmd(NVMCTRL_CMD_FLPER_gc);
-      *((uint8_t *)_dwAddr) = 0;
+      *data_pointer(_dwAddr) = 0;
       nvm_cmd(NVMCTRL_CMD_FLWR_gc);
     }
     #endif
@@ -114,13 +122,15 @@ namespace NVM::V4 {
 
   size_t write_memory(void) {
     uint8_t   m_type = packet.out.bMType;
-    uint16_t _dwAddr = packet.out.dwAddr;     /* The high-order word is ignored. */
+    uint16_t _dwAddr = packet.out.dwAddr;
     size_t  _wLength = packet.out.dwLength;
+    uint16_t _dwEnd = _dwAddr + _wLength - 1;
     DFLUSH();
-    if (m_type == 0xB0) {
+    if (m_type == 0xB0 || m_type == 0xC0) {
       /* MTYPE_FLASH_PAGE (PROGMEM) */
-      if (_dwAddr < _bootsize) {
-        return 1;
+      if (_dwAddr < _bootsize || _dwEnd > PROGMEM_END ||
+          (_dwAddr & (PROGMEM_PAGE_SIZE - 1)) + _wLength > PROGMEM_PAGE_SIZE) {
+        return 0;
       }
       set_flmap(_dwAddr);
       m_type = 0xC0;
@@ -129,16 +139,27 @@ namespace NVM::V4 {
     if (m_type == 0x22 || m_type == 0xC4) {
       /* MTYPE_EEPROM */
       /* MTYPE_EEPROM_XMEGA */
+      if (_dwAddr < EEPROM_START || _dwEnd > EEPROM_END) {
+        return 0;
+      }
       nvm_cmd(NVMCTRL_CMD_EEERWR_gc);
     } else if (m_type == 0xC0 || m_type == 0xC5) {
       /* MTYPE_FLASH (alias) */
       /* MTYPE_USERSIG (USERROW, BOOTROW) */
+      if (m_type == 0xC5 &&
+          !(_dwAddr >= BOOTROW_START && _dwEnd <= BOOTROW_END) &&
+          !(_dwAddr >= USER_SIGNATURES_START && _dwEnd <= USER_SIGNATURES_END)) {
+        return 0;
+      }
       nvm_cmd(NVMCTRL_CMD_FLPER_gc);
-      *((uint8_t *)_dwAddr) = 0;
+      *data_pointer(_dwAddr) = 0;
       nvm_cmd(NVMCTRL_CMD_FLWR_gc);
+    } else {
+      /* Never interpret an unknown memory type as a raw data-space write. */
+      return 0;
     }
 
-    memcpy((void *)_dwAddr, &packet.out.memData[0], _wLength);
+    memcpy(data_pointer(_dwAddr), &packet.out.memData[0], _wLength);
     nvm_cmd(NVMCTRL_CMD_NONE_gc);
 
     return 1;
@@ -150,6 +171,16 @@ namespace NVM::V4 {
   size_t jtag_scope_updi(void) {
     size_t _rspsize = 0;
     uint8_t _cmd = packet.out.cmd;
+    if (_cmd == 0x21 || _cmd == 0x23) {
+      /* Validate the full 32-bit fields before narrowing to AVR pointers/size_t. */
+      uint16_t _size = packet.out.dwLength;
+      uint16_t _addr = packet.out.dwAddr;
+      if (_packet_length < 16 || !_size || packet.out.dwLength > 512 ||
+          packet.out.dwAddr >> 16 || (uint16_t)(_addr + _size - 1) < _addr ||
+          (_cmd == 0x23 && _packet_length < 17 + _size)) {
+        return 0;
+      }
+    }
     if (_cmd == 0x10) {             /* CMD3_SIGN_ON */
       D1PRINTF(" UPDI_SIGN_ON=EXT:%02X\r\n", packet.out.bMType);
       memcpy_P(&packet.in.data[0], &_sib[0], 4);
@@ -176,8 +207,10 @@ namespace NVM::V4 {
       D1PRINTF(" UPDI_READ=%02X:%06lX:%04X\r\n", packet.out.bMType,
                packet.out.dwAddr, (size_t)packet.out.dwLength);
       _rspsize = read_memory();
-      packet.in.res = 0x184;        /* RSP3_DATA */
-      return _rspsize;
+      if (_rspsize) {
+        packet.in.res = 0x184;        /* RSP3_DATA */
+        return _rspsize;
+      }
     } else if (_cmd == 0x23) {      /* CMD3_WRITE_MEMORY */
       D1PRINTF(" UPDI_WRITE=%02X:%06lX:%04X\r\n", packet.out.bMType,
                packet.out.dwAddr, (size_t)packet.out.dwLength);

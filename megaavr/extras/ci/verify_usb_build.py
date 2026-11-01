@@ -26,7 +26,7 @@ def verify(filename, mcu="avr64du32"):
         return table[offset:table.index(0, offset)].decode("ascii")
 
     by_name = {name(names, section[0]): section for section in sections}
-    assert by_name[".text"][3] == 0xA00, "Application vectors must start at 0x0A00"
+    assert by_name[".text"][3] == 0xC00, "Application vectors must start at 0x0C00"
     symbols = {}
     for section in sections:
         if section[1] != 2:
@@ -85,7 +85,7 @@ def verify(filename, mcu="avr64du32"):
         if section and section[5]:
             assert 0x800000 + ram_start <= section[3] < section[3] + section[5] <= 0x808000, \
                 section_name + " must fit the selected MCU's SRAM"
-    print("PASS: vectors at 0x0A00, %d HEX bytes within application flash, CDC descriptors and DMA alignment" % count)
+    print("PASS: vectors at 0x0C00, %d HEX bytes within application flash, CDC descriptors and DMA alignment" % count)
 
 
 if __name__ == "__main__":

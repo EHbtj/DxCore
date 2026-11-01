@@ -15,6 +15,7 @@ import struct
 import subprocess
 
 MCUS = ("avr64du32", "avr32du32", "avr64du28", "avr32du28")
+BOOT_BYTES = 6 * 512
 
 
 def elf_sections(filename):
@@ -92,8 +93,8 @@ def build(toolchain, output, write_assets=False, nano=False):
             subprocess.run(command, check=True)
             subprocess.run([objcopy, "-O", "ihex", "-j", ".text", "-j", ".data", str(elf), str(hexfile)], check=True)
             image = image_bytes(hexfile)
-            if not 14 <= len(image) <= 2560:
-                raise ValueError(name + " does not fit the five-sector boot reservation")
+            if not 14 <= len(image) <= BOOT_BYTES:
+                raise ValueError(name + " does not fit the six-sector boot reservation")
             # Fixed euboot ABI: RJMP main, ST Z+,R22 / RET / LD R24,Z+ / RET / SPM Z+ / RET.
             if int.from_bytes(image[:2], "little") & 0xF000 != 0xC000 or image[2:14] != bytes.fromhex("6193089581910895f8950895"):
                 raise ValueError(name + " has an invalid reset/SPM snippet layout")
@@ -107,6 +108,7 @@ def build(toolchain, output, write_assets=False, nano=False):
                 raise ValueError(name + " has invalid SRAM workspace/stack placement")
             manifest["images"][hexfile.name] = {
                 "mcu": mcu, "power": mode, "bytes": len(image),
+                "app_start": BOOT_BYTES,
                 "ram_start": sram_start, "ramend": 0x7FFF, "static_ram_bytes": workspace["size"],
                 "sha256": hashlib.sha256(image).hexdigest(),
             }

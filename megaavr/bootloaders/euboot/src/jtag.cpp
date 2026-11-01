@@ -59,6 +59,12 @@ namespace JTAG {
     D2PRINTF("DAP=%02X SUB=%02X\r\n", _cmd, _sub);
     DFLUSH();
     USB::ep_dpi_pending();
+    if (EP_DPO.CNT != 64) {
+      _packet_chunks = _packet_endfrag = 0;
+      EP_MEM.dap_data[1] = 0;
+      USB::complete_dap_out();
+      return false;
+    }
 
     /*** EDBG Payload ***/
     /*
@@ -72,16 +78,19 @@ namespace JTAG {
       uint8_t _endf = _sub & 0x0F;
       uint8_t _frag = _sub >> 4;
       uint8_t _size = EP_MEM.dap_data[3];
-      size_t  _ofst = (_frag - 1) * 60;
-      if (_endf >= 10) {
-        /* Only a maximum of 540 bytes : 9 fragment records is accepted. */
+      if (_frag == 1) {
+        /* Remember both the next fragment and the total; abort any old reply. */
+        _packet_chunks = _sub;
+        _packet_endfrag = 0;
+      }
+      if ((uint8_t)(_endf - 1) >= 9 || !_frag || _frag > _endf || _sub != _packet_chunks ||
+          EP_MEM.dap_data[2] || !_size || _size > 60 ||
+          (_frag != _endf && _size != 60)) {
+        _packet_chunks = _packet_endfrag = 0;
         EP_MEM.dap_data[1] = 0x00;  /* EDBG_RSP_FAIL */
       } else {
-        /* Detect the first chunk. */
-        if (_frag == 1) {
-          _packet_chunks = 0;
-        }
-        ++_packet_chunks;
+        size_t _ofst = (_frag - 1) * 60;
+        _packet_chunks += 0x10;
         memcpy(&packet.rawData[_ofst], &EP_MEM.dap_data[4], _size);
         EP_MEM.dap_data[1] = 0x01;  /* EDBG_RSP_OK */
         D3PRINTHEX(&EP_MEM.dap_data, _size + 4, ':');
@@ -89,26 +98,25 @@ namespace JTAG {
           _packet_length = _ofst + _size;
           D3PRINTF(" SQ=%03X:%03X<", packet.out.sequence, _packet_length);
           D3PRINTHEX(&packet, _packet_length, ':');
-          if (_packet_chunks == _endf) {
-            /* True if an EDBG Payload is received. */
-            _packet_endfrag = 0;
-            _result = true;
-          } else {
-            /* A missing chunk is detected, so an error is returned. */
-            EP_MEM.dap_data[1] = 0x00;  /* EDBG_RSP_FAIL */
-          }
+          _packet_chunks = 0;
+          _result = true;
         }
       }
     } else if (_cmd == 0x81) {      /* DAP_EDBG_VENDOR_AVR_RSP */
       EP_MEM.dap_data[2] = 0;       /* Always zero */
+      memset(&EP_MEM.dap_data[4], 0, 60);
       if (_packet_endfrag == 0) {
         EP_MEM.dap_data[1] = 0;
         EP_MEM.dap_data[3] = 0;
       } else {
-        memcpy(&EP_MEM.dap_data[4], &packet.in.token + (_packet_fragment * 60), 60);
+        uint8_t _size = _packet_length > 60 ? 60 : _packet_length;
+        memcpy(&EP_MEM.dap_data[4], &packet.in.token + (_packet_fragment * 60), _size);
         EP_MEM.dap_data[1] = ((++_packet_fragment) << 4) | _packet_endfrag;
-        EP_MEM.dap_data[3] = _packet_fragment == _packet_endfrag ? _packet_length : 60;
-        _packet_length -= 60;
+        EP_MEM.dap_data[3] = _size;
+        _packet_length -= _size;
+        if (!_packet_length) {
+          _packet_endfrag = 0;
+        }
         D3PRINTF(" PI=");
         D3PRINTHEX(&EP_MEM.dap_data, EP_MEM.dap_data[3] + 4, ':');
       }
@@ -178,147 +186,93 @@ namespace JTAG {
     D3PRINTHEX(&packet.in.token, _packet_length, ':');
   }
 
-  /*** Only a subset of JTAGICE3 commands are implemented. ***/
-  size_t jtag_scope_general(void) {
-    size_t  _rspsize = 0;
-    uint8_t _cmd     = packet.out.cmd;
+  /* Shared parameter handling keeps validation identical for all scopes. */
+  size_t parameter(uint8_t _scope) {
+    uint8_t _cmd = packet.out.cmd;
     uint8_t _section = packet.out.section;
-    uint8_t _index   = packet.out.index;
-    uint8_t _length  = packet.out.length;
-    if (_cmd == 0x02) {             /* CMD3_GET_PARAMETER */
-      // D1PRINTF(" GEN_GET_PARAM=%02X:%02X:%02X\r\n", _section, _index, _length);
-      if (_section == 0) {          /* SET_GET_CTXT_CONFIG */
-        /* _index == 0-4 */
-        memcpy_P(&packet.in.data[0], &jtag_version[_index], _length);
-        D1PRINTF(" VER=");
-        D1PRINTHEX(&packet.in.data[0], _length, ':');
-      } else if (_section == 1) {   /* SET_GET_CTXT_PHYSICAL */
-        if (_index == 0 || _index == 0x20) {  /* PARM3_VTARGET */
-          packet.in.wValue = SYS::get_vdd();
-          D1PRINTF(" VTG=%d\r\n", packet.in.wValue);
-        }
+    uint8_t _index = packet.out.index;
+    uint8_t _length = packet.out.length;
+    if (_packet_length < 10 || !_length) {
+      return 0;
+    }
+    if (_cmd == 0x01) { /* CMD3_SET_PARAMETER */
+      if (_packet_length < (size_t)10 + _length || _scope == 0x01) {
+        return 0;
       }
-      packet.in.res = 0x184;        /* RSP3_DATA */
-      _rspsize = _length + 1;
-    } else if (_cmd == 0x10) {      /* CMD3_SIGN_ON */
-      D1PRINTF(" GEN_SIGN_ON\r\n");
-      _jtag_arch = 0;
-      packet.in.res = 0x80;         /* RSP3_OK */
-    } else if (_cmd == 0x11) {      /* CMD3_SIGN_OFF */
-      D1PRINTF(" GEN_SIGN_OFF\r\n");
-      packet.in.res = 0x80;         /* RSP3_OK */
-    }
-    return _rspsize;
-  }
-
-  /*** The EDBG scope provides access to the writer's hardware specifications. ***/
-  /* There is no impact on operation if it is not called at all. */
-  size_t jtag_scope_edbg(void) {
-    size_t  _rspsize = 0;
-    uint8_t _cmd     = packet.out.cmd;
-    uint8_t _length  = packet.out.length;
-    if (_cmd == 0x01) {             /* CMD3_SET_PARAMETER */
-      packet.in.res = 0x80;         /* RSP3_OK */
-    } else if (_cmd == 0x02) {      /* CMD3_GET_PARAMETER */
-      packet.in.res = 0x184;        /* RSP3_DATA */
-      _rspsize = _length + 1;
-    }
-    return _rspsize;
-  }
-
-  /* The AVR scope is further branched by the ARCH designator. */
-  size_t jtag_scope_avr_core(void) {
-    size_t  _rspsize = 0;
-    uint8_t _cmd     = packet.out.cmd;
-    uint8_t _section = packet.out.section;
-    uint8_t _index   = packet.out.index;
-    uint8_t _length  = packet.out.length;
-    if (_cmd == 0x01) {             /* CMD3_SET_PARAMETER */
-      uint16_t _data = packet.out.wValue & 0xFF;
-      if (_section == 0) {          /* SET_GET_CTXT_CONFIG */
-        if (_index == 0) {          /* PARM3_ARCH */
-          D1PRINTF(" ARCH=%02X\r\n", _data);
-          _jtag_arch = _data;       /* 5:UPDI 3:PDI */
-        }
-      } else if (_section == 1) {   /* SET_GET_CTXT_PHYSICAL */
-        if (_index == 0) {          /* PARM3_CONNECTION */
-          D1PRINTF(" CONNECTION=%02X\r\n", _data);
-          _jtag_conn = _data;       /* 8:PARM3_CONN_UPDI */
-        }
-      } else if (_section == 2) {   /* SET_GET_CTXT_DEVICE */
-        if (_index == 0) {          /* PARM3_DEVICEDESC */
-          D1PRINTF(" DEVICEDESC=%X\r\n", _length);
-          memcpy(&Device_Descriptor, &packet.out.setData[0], _length & 63);
-          #if DEBUG >= 1
-          if (_jtag_arch == 5) {
-            D2PRINTF("(UPDI)  prog_base=%02X:%04X\r\n", Device_Descriptor.UPDI.prog_base_msb, Device_Descriptor.UPDI.prog_base);
-            D2PRINTF("  flash_page_size=%02X:%02X\r\n", Device_Descriptor.UPDI.flash_page_size_msb, Device_Descriptor.UPDI.flash_page_size);
-            D2PRINTF("      flash_bytes=%06lX\r\n", Device_Descriptor.UPDI.flash_bytes);
-            D2PRINTF("     eeprom_bytes=%04X\r\n", Device_Descriptor.UPDI.eeprom_bytes);
-            D2PRINTF("   user_sig_bytes=%04X\r\n", Device_Descriptor.UPDI.user_sig_bytes);
-            D2PRINTF("      fuses_bytes=%04X\r\n", Device_Descriptor.UPDI.fuses_bytes);
-            D2PRINTF("      eeprom_base=%04X\r\n", Device_Descriptor.UPDI.eeprom_base);
-            D2PRINTF("    user_sig_base=%04X\r\n", Device_Descriptor.UPDI.user_sig_base);
-            D2PRINTF("   signature_base=%04X\r\n", Device_Descriptor.UPDI.signature_base);
-            D2PRINTF("       fuses_base=%04X\r\n", Device_Descriptor.UPDI.fuses_base);
-            D2PRINTF("    lockbits_base=%04X\r\n", Device_Descriptor.UPDI.lockbits_base);
-            D2PRINTF("     address_mode=%02X\r\n", Device_Descriptor.UPDI.address_mode);
-            D2PRINTF("   hvupdi_variant=%02X\r\n", Device_Descriptor.UPDI.hvupdi_variant);
-            /* Even with all this, the BOOTROW information is still undefined! */
-            /* Re-analysis of newer ICE FW is needed! */
+      if (_scope == 0x12 && _index == 0) {
+        uint8_t _data = packet.out.setData[0];
+        if (_section == 0) {
+          _jtag_arch = _data;
+        } else if (_section == 1) {
+          _jtag_conn = _data;
+        } else if (_section == 2) {
+          if (_length > sizeof(Device_Descriptor)) {
+            return 0;
           }
-          /* STUB: And other descriptors. */
-          #endif
+          /* The bootloader uses the MCU's compile-time memory map. */
         }
       }
-      packet.in.res = 0x80;         /* RSP3_OK */
-    } else if (_cmd == 0x02) {      /* CMD3_GET_PARAMETER */
-      if (_section == 0) {          /* SET_GET_CTXT_CONFIG */
-        if (_index == 0) {          /* PARM3_ARCH */
-          packet.in.data[0] = _jtag_arch;
-        }
-      } else if (_section == 1) {   /* SET_GET_CTXT_PHYSICAL */
-        if (_index == 0) {          /* PARM3_CONNECTION */
-          /* This is a stub that is called but not used. */
-          packet.in.data[0] = _jtag_conn;
-        } else if (_index == 0x31) { /* PARM3_CLK_XMEGA_PDI */
-          D1PRINTF(" BOOT=%d\r\n", _bootsize);
-          packet.in.wValue = _bootsize;
-        }
-      }
-      packet.in.res = 0x184;        /* RSP3_DATA */
-      _rspsize = _length + 1;
+      packet.in.res = 0x80; /* RSP3_OK */
+      return 1;
     }
-    /* AVR-DU series support */
-    else if (_jtag_arch == 0x05) {
-      _rspsize = NVM::V4::jtag_scope_updi();
-    } else {
-      packet.in.res = 0xA0;  /* RSP3_FAILED */
-    }
-    return _rspsize;
-  } /* jtag_scope_avr_core */
 
-  /* Processing branches depending on the scope specifier. */
-  /* Currently, four types of scope are known: */
+    uint16_t _value = 0;
+    if (_scope == 0x01) {
+      if (_section == 0) {
+        if (_index >= sizeof(jtag_version) || _length > sizeof(jtag_version) - _index) {
+          return 0;
+        }
+        memcpy_P(&packet.in.data[0], &jtag_version[_index], _length);
+        packet.in.res = 0x184;
+        return _length + 1;
+      }
+      if (_section != 1 || (_index != 0 && _index != 0x20) || _length != 2) {
+        return 0;
+      }
+      _value = SYS::get_vdd();
+    } else if (_scope == 0x12) {
+      if (_section == 0 && _index == 0) {
+        _value = _jtag_arch;
+      } else if (_section == 1) {
+        if (_index == 0) {
+          _value = _jtag_conn;
+        } else if (_index == 0x31) {
+          _value = _bootsize;
+        }
+      }
+    }
+    memset(&packet.in.data[0], 0, _length);
+    packet.in.data[0] = _value;
+    if (_length > 1) {
+      packet.in.data[1] = _value >> 8;
+    }
+    packet.in.res = 0x184; /* RSP3_DATA */
+    return _length + 1;
+  }
+
   void jtag_scope_branch(void) {
     size_t _rspsize = 0;
-    uint8_t _scope  = packet.out.scope;
-    D2PRINTF("SQ=%d:%d>SCOPE=%02X,C=%02X,S=%02X,L=%02X\r\n",
-             packet.out.sequence,
-             _packet_length,
-             _scope,
-             packet.out.cmd,
-             packet.out.section,
-             packet.out.index);
-    if (_scope == 0x01) {
-      _rspsize = jtag_scope_general();  /* SCOPE_GENERAL */
-    } else if (_scope == 0x12) {
-      _rspsize = jtag_scope_avr_core();  /* SCOPE_AVR */
-    } else if (_scope == 0x20) {
-      _rspsize = jtag_scope_edbg();  /* SCOPE_EDBG */
+    uint8_t _scope = packet.out.scope;
+    uint8_t _cmd = packet.out.cmd;
+    if (_packet_length >= 6 && packet.out.token == 0x0E &&
+        (_scope == 0x01 || _scope == 0x12 || _scope == 0x20)) {
+      if (_cmd == 0x01 || _cmd == 0x02) {
+        _rspsize = parameter(_scope);
+      } else if (_scope == 0x12 && _jtag_arch == 5) {
+        _rspsize = NVM::V4::jtag_scope_updi();
+      } else if (_scope == 0x01 && (_cmd == 0x10 || _cmd == 0x11)) {
+        if (_cmd == 0x10) {
+          _jtag_arch = 0;
+        }
+        packet.in.res = 0x80;
+        _rspsize = 1;
+      }
+    }
+    if (!_rspsize) {
+      packet.in.res = 0xA0; /* RSP3_FAILED, including refused writes. */
     }
     complete_jtag_transactions(_rspsize);
-  } /* jtag_scope_branch */
+  }
 
 };
 
