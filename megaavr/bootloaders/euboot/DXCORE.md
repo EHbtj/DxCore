@@ -6,7 +6,7 @@ LICENSE, the upstream Makefile, CRC generator and documentation are retained.
 The historical PF2 LED / PF6 switch Curiosity Nano HEX is retained unmodified
 at hex/euboot_LF2_SF6.hex for provenance. The Nano board now selects the locally
 rebuilt hex/nano/euboot_avr64du32_LF2_SF6_regulator.hex.
-The hardened Nano image is 2,848 bytes; standalone images are 2,850..2,878 bytes.
+The hardened Nano image is 2,868 bytes; standalone images are 2,870..2,898 bytes.
 Nano and standalone 28/32-pin images are generated from locally adapted sources:
 configuration.h selects the internal-regulator/external-VUSB mode, and nvm_cmd
 uses .trampolines so the fixed reset/SPM ABI is independent of LTO function order.
@@ -28,6 +28,16 @@ The native regression harness compiles the actual JTAG/NVM handlers for 32/64 Ki
 targets with register/address-space stubs. Linux CI also enables ASan/UBSan.
 This does not validate USB timing or physical NVM behavior.
 
+EP0 responses and HID IN/OUT reports now have separate even-aligned DMA buffers.
+Previously an EP0 string request could overwrite a queued HID reply with UTF-16
+string bytes (including 0x6f from "euboot"), and the next OUT report could overwrite
+an IN report before the host consumed it. This could interrupt a later sketch
+upload even though euboot sign-on succeeded. IN starts NAKed until a real reply
+is prepared; incoming reports are copied only after the previous IN completes.
+The native harness covers control traffic during a queued reply and a subsequent
+OUT arriving before that reply is consumed. Install the new bootloader once via
+UPDI to receive this fix; the six-sector layout and application origin are unchanged.
+
 The Intel HEX blob matches upstream Git blob
 9abf09a11cda4b84f36048df285749b5a50569ad.
 Its LF-normalized file SHA-256 is
@@ -39,8 +49,12 @@ Current local builds reserve six 512-byte sectors (BOOTSIZE=6), link the applica
 at 0x0c00 and preserve UPDI. Their extra checks exceed the old 2,560-byte reservation.
 Reinstall the bootloader and fuses over UPDI and rebuild the sketch when upgrading
 from the five-sector version. Do not mix old/new bootloaders, fuses and sketches.
-The earlier 2,400-byte image's real-device results above do not validate this
-hardened version; its USB, stress and recovery tests still need real hardware.
+For the current 2,868-byte Nano image, five consecutive USB uploads of the
+6,454-byte HIDKeyboardMouse sketch passed read-back verification on Windows /
+AVRDUDE 8.1 without rewriting the bootloader or reporting unexpected responses.
+CDC (COM6), keyboard and mouse enumeration returned normally after the final
+upload. Standalone targets, long-duration stress and power-loss recovery remain
+unverified on hardware.
 Its PF6 switch uses GPIO mode (SYSCFG0=0xd1).
 Do not substitute an Optiboot image or a debug euboot image: their application
 origins and startup conventions differ.

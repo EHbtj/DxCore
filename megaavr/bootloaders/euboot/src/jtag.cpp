@@ -54,11 +54,15 @@ namespace JTAG {
    */
   bool dap_command_check(void) {
     bool _result = false;
+    /* A new OUT report can arrive while the previous IN report is queued.
+     * Keep both DMA buffers separate, and wait before reusing the IN buffer.
+     * EP0 descriptor traffic also has its own buffer throughout the session. */
+    USB::ep_dpi_pending();
+    memcpy(EP_MEM.dap_data, EP_MEM.dap_recv, sizeof(EP_MEM.dap_data));
     uint8_t _cmd = EP_MEM.dap_data[0];
     uint8_t _sub = EP_MEM.dap_data[1];
     D2PRINTF("DAP=%02X SUB=%02X\r\n", _cmd, _sub);
     DFLUSH();
-    USB::ep_dpi_pending();
     if (EP_DPO.CNT != 64) {
       _packet_chunks = _packet_endfrag = 0;
       EP_MEM.dap_data[1] = 0;

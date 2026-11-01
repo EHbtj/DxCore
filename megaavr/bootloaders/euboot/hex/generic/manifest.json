@@ -13,12 +13,12 @@
     "src/configuration.h": "c5deca1dcbf42ba644157c45fbd8b28dc3f8099d5208e44eedc43ea71e28e404",
     "src/data_space.h": "1f3bf42564e79a213c3dfccf43f98e4e359b3f29efac03cdae2290526c7c08f6",
     "src/fuse.c": "277dec737c725387f54eb146e03e9866e20632261090d8210254cca0798f1d2c",
-    "src/jtag.cpp": "5ae3bacebdfb6d6bbdbcf138e1fdc86a587a217e13f0b8c201814b13f25e45b4",
+    "src/jtag.cpp": "d355018188b700d1eb263b407bf8c7e66f5f1a2a458d9f9bcf3872fadccfac09",
     "src/main.cpp": "b4ae31aef609ded25f71441cd32b265b2c57bc500b8eeab16a0357fea594f708",
     "src/nvmv4.cpp": "3a9212bb9d54cc4687726e5e0deebb52abb99be4a276d61f37323456434506cd",
-    "src/prototype.h": "0dc02cc9b0d3c02702e58d31b060784c9311c4b9847664c0fb414455bb581353",
+    "src/prototype.h": "9d9d85a08b2662024b76614f9869f3412c9a317229009843440fe9d004e6a0c9",
     "src/sys.cpp": "9fc7a6cae5c152f825dee6bf44c80425c7c8916a4799713ade1656305194deb2",
-    "src/usb.cpp": "5fbc26606747cc2cba114f9b6e503286d201c3e740b5936fb010dc2e2893d13a"
+    "src/usb.cpp": "569d868aae0c6f50ce12f7b802f43aadde3346bd441432ddd5d884dbe77ded29"
   },
   "device_headers": {
     "avr64du32": "ec8cfd7bf1a9f0e16cad4447f0a1b3b5f7304656a7c09fcb2495b02e13d957c4",
@@ -30,82 +30,82 @@
     "euboot_avr64du32_LA7_SF6_regulator.hex": {
       "mcu": "avr64du32",
       "power": "regulator",
-      "bytes": 2852,
+      "bytes": 2872,
       "app_start": 3072,
       "ram_start": 24576,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "4866c75e8cb5cd4f2ee6e230a2316ce371baaf70fec0c78c7d9ea64ea70299b4"
+      "static_ram_bytes": 1010,
+      "sha256": "12e841938e401d4a5cc43243c458b90d61c517783b626c2cba81bd53f2d28367"
     },
     "euboot_avr64du32_LA7_SF6_external.hex": {
       "mcu": "avr64du32",
       "power": "external",
-      "bytes": 2850,
+      "bytes": 2870,
       "app_start": 3072,
       "ram_start": 24576,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "d97689325ad1152f9dbf367b781bd838057fc9e1153727641e22312e32b3493e"
+      "static_ram_bytes": 1010,
+      "sha256": "d4d139ebce43fece55f366cb07b0698729f3e7e9fe87ccfdb990cbe09b06c603"
     },
     "euboot_avr32du32_LA7_SF6_regulator.hex": {
       "mcu": "avr32du32",
       "power": "regulator",
-      "bytes": 2878,
+      "bytes": 2898,
       "app_start": 3072,
       "ram_start": 28672,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "6e84fb2d65bcc6c4ae7d13c6adde8144a97c2d7dd12505ebf42409f46728baf6"
+      "static_ram_bytes": 1010,
+      "sha256": "cda0edb4312b38344db0faaf056cc7a48c7b2fac6e73505ee4522042f1801d7d"
     },
     "euboot_avr32du32_LA7_SF6_external.hex": {
       "mcu": "avr32du32",
       "power": "external",
-      "bytes": 2876,
+      "bytes": 2896,
       "app_start": 3072,
       "ram_start": 28672,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "c5e6f73df1e6adc1f5eb5e05a23e0770954a44cfe3fcef1df225ffae9fba061d"
+      "static_ram_bytes": 1010,
+      "sha256": "a66cb62030ea214cc497aade822580f847aa46e4ec5fc6c38dcf428dede9de29"
     },
     "euboot_avr64du28_LA7_SF6_regulator.hex": {
       "mcu": "avr64du28",
       "power": "regulator",
-      "bytes": 2852,
+      "bytes": 2872,
       "app_start": 3072,
       "ram_start": 24576,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "4866c75e8cb5cd4f2ee6e230a2316ce371baaf70fec0c78c7d9ea64ea70299b4"
+      "static_ram_bytes": 1010,
+      "sha256": "12e841938e401d4a5cc43243c458b90d61c517783b626c2cba81bd53f2d28367"
     },
     "euboot_avr64du28_LA7_SF6_external.hex": {
       "mcu": "avr64du28",
       "power": "external",
-      "bytes": 2850,
+      "bytes": 2870,
       "app_start": 3072,
       "ram_start": 24576,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "d97689325ad1152f9dbf367b781bd838057fc9e1153727641e22312e32b3493e"
+      "static_ram_bytes": 1010,
+      "sha256": "d4d139ebce43fece55f366cb07b0698729f3e7e9fe87ccfdb990cbe09b06c603"
     },
     "euboot_avr32du28_LA7_SF6_regulator.hex": {
       "mcu": "avr32du28",
       "power": "regulator",
-      "bytes": 2878,
+      "bytes": 2898,
       "app_start": 3072,
       "ram_start": 28672,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "6e84fb2d65bcc6c4ae7d13c6adde8144a97c2d7dd12505ebf42409f46728baf6"
+      "static_ram_bytes": 1010,
+      "sha256": "cda0edb4312b38344db0faaf056cc7a48c7b2fac6e73505ee4522042f1801d7d"
     },
     "euboot_avr32du28_LA7_SF6_external.hex": {
       "mcu": "avr32du28",
       "power": "external",
-      "bytes": 2876,
+      "bytes": 2896,
       "app_start": 3072,
       "ram_start": 28672,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "c5e6f73df1e6adc1f5eb5e05a23e0770954a44cfe3fcef1df225ffae9fba061d"
+      "static_ram_bytes": 1010,
+      "sha256": "a66cb62030ea214cc497aade822580f847aa46e4ec5fc6c38dcf428dede9de29"
     }
   }
 }

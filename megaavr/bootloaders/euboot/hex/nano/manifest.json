@@ -13,12 +13,12 @@
     "src/configuration.h": "c5deca1dcbf42ba644157c45fbd8b28dc3f8099d5208e44eedc43ea71e28e404",
     "src/data_space.h": "1f3bf42564e79a213c3dfccf43f98e4e359b3f29efac03cdae2290526c7c08f6",
     "src/fuse.c": "277dec737c725387f54eb146e03e9866e20632261090d8210254cca0798f1d2c",
-    "src/jtag.cpp": "5ae3bacebdfb6d6bbdbcf138e1fdc86a587a217e13f0b8c201814b13f25e45b4",
+    "src/jtag.cpp": "d355018188b700d1eb263b407bf8c7e66f5f1a2a458d9f9bcf3872fadccfac09",
     "src/main.cpp": "b4ae31aef609ded25f71441cd32b265b2c57bc500b8eeab16a0357fea594f708",
     "src/nvmv4.cpp": "3a9212bb9d54cc4687726e5e0deebb52abb99be4a276d61f37323456434506cd",
-    "src/prototype.h": "0dc02cc9b0d3c02702e58d31b060784c9311c4b9847664c0fb414455bb581353",
+    "src/prototype.h": "9d9d85a08b2662024b76614f9869f3412c9a317229009843440fe9d004e6a0c9",
     "src/sys.cpp": "9fc7a6cae5c152f825dee6bf44c80425c7c8916a4799713ade1656305194deb2",
-    "src/usb.cpp": "5fbc26606747cc2cba114f9b6e503286d201c3e740b5936fb010dc2e2893d13a"
+    "src/usb.cpp": "569d868aae0c6f50ce12f7b802f43aadde3346bd441432ddd5d884dbe77ded29"
   },
   "device_headers": {
     "avr64du32": "ec8cfd7bf1a9f0e16cad4447f0a1b3b5f7304656a7c09fcb2495b02e13d957c4"
@@ -27,12 +27,12 @@
     "euboot_avr64du32_LF2_SF6_regulator.hex": {
       "mcu": "avr64du32",
       "power": "regulator",
-      "bytes": 2848,
+      "bytes": 2868,
       "app_start": 3072,
       "ram_start": 24576,
       "ramend": 32767,
-      "static_ram_bytes": 882,
-      "sha256": "71a92bdfd62d14911aa5d06873f1ef44872ddb175d507da0d3ce9cb3f0864eb6"
+      "static_ram_bytes": 1010,
+      "sha256": "a129a14464551c5049ba41981743298b49a33603af26b5225c3a9ca3bb5e931d"
     }
   }
 }

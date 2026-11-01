@@ -179,17 +179,15 @@ typedef struct {
 
 typedef struct {
   Setup_Packet_t req_data;
-  union {
-    uint8_t res_data[256 + 16];
-    struct {
-      struct {
-        Setup_Packet_t cci_header;
-        uint16_t cci_wValue;
-      };
-      uint8_t dap_data[64];   /* DAP IN/OUT */
-    };
-  };
+  uint8_t res_data[256 + 16]; /* EP0 IN, including string descriptors. */
+  uint8_t dap_data[64];      /* DAP IN; CPU may change only after IN completes. */
+  uint8_t dap_recv[64];      /* DAP OUT; separate from queued IN and EP0 data. */
 } PACKED EP_DATA_t;
+
+static_assert(offsetof(EP_DATA_t, res_data) % 2 == 0 &&
+              offsetof(EP_DATA_t, dap_data) % 2 == 0 &&
+              offsetof(EP_DATA_t, dap_recv) % 2 == 0,
+              "USB DMA buffers must be even-aligned");
 
 typedef struct {
   USB_EP_PAIR_t EP[USB_ENDPOINTS_MAX];        /* USB Device Controller EP */

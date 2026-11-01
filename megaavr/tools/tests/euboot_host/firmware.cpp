@@ -14,6 +14,9 @@
 uint8_t host_gpr0, host_gpr2, host_flmap, host_wdt;
 uint8_t host_flash[65536], host_data[65536];
 static unsigned nvm_commands, checks;
+static bool reply_pending;
+static uint8_t queued_reply[64];
+static void acknowledge_reply();
 static USB_EP_t host_dpo;
 #undef EP_DPO
 #define EP_DPO host_dpo
@@ -35,8 +38,11 @@ extern "C" void nvm_cmd(uint8_t) {
   ++nvm_commands;
 }
 namespace USB {
-  void ep_dpi_pending() {}
-  void complete_dap_out() {}
+  void ep_dpi_pending() { acknowledge_reply(); }
+  void complete_dap_out() {
+    memcpy(queued_reply, EP_MEM.dap_data, sizeof(queued_reply));
+    reply_pending = true;
+  }
 };
 namespace SYS {
   uint16_t get_vdd() { return 3300; }
@@ -64,6 +70,14 @@ namespace NVM::V4 {
     } \
   } while (0)
 
+static void acknowledge_reply() {
+  if (reply_pending) {
+    // Model the host consuming a previously queued HID IN report only now.
+    CHECK(memcmp(queued_reply, EP_MEM.dap_data, sizeof(queued_reply)) == 0);
+    reply_pending = false;
+  }
+}
+
 static void reset() {
   memset(&packet, 0xA5, sizeof(packet));
   memset(&EP_MEM, 0, sizeof(EP_MEM));
@@ -76,15 +90,16 @@ static void reset() {
   host_dpo.CNT = 64;
   host_flmap = 0;
   nvm_commands = 0;
+  reply_pending = false;
 }
 
 static bool fragment(uint8_t id, uint8_t total, uint8_t size, const uint8_t *data) {
-  memset(EP_MEM.dap_data, 0, 64);
-  EP_MEM.dap_data[0] = 0x80;
-  EP_MEM.dap_data[1] = (id << 4) | total;
-  EP_MEM.dap_data[3] = size;
+  memset(EP_MEM.dap_recv, 0, 64);
+  EP_MEM.dap_recv[0] = 0x80;
+  EP_MEM.dap_recv[1] = (id << 4) | total;
+  EP_MEM.dap_recv[3] = size;
   if (size <= 60) {
-    memcpy(EP_MEM.dap_data + 4, data, size);
+    memcpy(EP_MEM.dap_recv + 4, data, size);
   }
   return JTAG::dap_command_check();
 }
@@ -168,9 +183,9 @@ static void test_fragments() {
   }
   reset();
   fragment(1, 2, 60, data);
-  EP_MEM.dap_data[0] = 0x80;
-  EP_MEM.dap_data[1] = 0x22;
-  EP_MEM.dap_data[2] = 1; // High byte of HID payload length must be zero.
+  EP_MEM.dap_recv[0] = 0x80;
+  EP_MEM.dap_recv[1] = 0x22;
+  EP_MEM.dap_recv[2] = 1; // High byte of HID payload length must be zero.
   CHECK(!JTAG::dap_command_check());
   CHECK(EP_MEM.dap_data[1] == 0);
 }
@@ -186,7 +201,7 @@ static void test_reads_and_responses() {
   uint8_t reply[540] = {};
   size_t count = 0;
   for (unsigned i = 0; i < 9; ++i) {
-    EP_MEM.dap_data[0] = 0x81;
+    EP_MEM.dap_recv[0] = 0x81;
     CHECK(!JTAG::dap_command_check());
     CHECK(EP_MEM.dap_data[1] == ((i + 1) << 4 | 9));
     uint8_t size = EP_MEM.dap_data[3];
@@ -201,7 +216,7 @@ static void test_reads_and_responses() {
   CHECK(reply[0] == 0x0E && reply[4] == 0x84);
   CHECK(memcmp(reply + 6, host_flash + 0x0C00, 512) == 0);
   for (unsigned i = 0; i < 20; ++i) {
-    EP_MEM.dap_data[0] = 0x81;
+    EP_MEM.dap_recv[0] = 0x81;
     CHECK(!JTAG::dap_command_check());
     CHECK(EP_MEM.dap_data[1] == 0 && EP_MEM.dap_data[3] == 0);
   }
@@ -314,6 +329,26 @@ static void test_parameters() {
   CHECK(packet.in.res == 0xA0);
 }
 
+static void test_control_during_dap_reply() {
+  reset();
+  uint8_t command[60] = {};
+  CHECK(fragment(1, 1, 6, command));
+  uint8_t reply[64];
+  memcpy(reply, EP_MEM.dap_data, sizeof(reply));
+  // A string request may complete while a HID IN report is still queued.
+  // Match the UTF-16 "euboot" prefix returned by USB::get_descriptor().
+  const uint8_t string[] = {14, 3, 'e', 0, 'u', 0, 'b', 0, 'o', 0, 'o', 0, 't', 0};
+  memcpy(EP_MEM.res_data, string, sizeof(string));
+  CHECK(memcmp(reply, EP_MEM.dap_data, sizeof(reply)) == 0);
+  // The host can queue the next request before reading the previous reply.
+  memset(EP_MEM.dap_recv, 0, sizeof(EP_MEM.dap_recv));
+  EP_MEM.dap_recv[1] = 0xff; // DAP_INFO_PACKET_SIZE
+  CHECK(memcmp(reply, EP_MEM.dap_data, sizeof(reply)) == 0);
+  CHECK(!JTAG::dap_command_check());
+  CHECK(EP_MEM.dap_data[0] == 0 && EP_MEM.dap_data[1] == 2 && EP_MEM.dap_data[2] == 64);
+  acknowledge_reply();
+}
+
 int main() {
   static_assert(sizeof(JTAG_Packet_t) == 540, "Wire packet packing changed");
   static_assert(offsetof(JTAG_Packet_t, out.memData) == 17, "Write header changed");
@@ -321,5 +356,6 @@ int main() {
   test_reads_and_responses();
   test_writes();
   test_parameters();
+  test_control_during_dap_reply();
   printf("PASS: %u checks, %u-byte flash\n", checks, (unsigned)PROGMEM_SIZE);
 }

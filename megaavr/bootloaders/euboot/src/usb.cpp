@@ -88,7 +88,7 @@ namespace USB {
         /* EP_DPI */
         { /* not used */ },
         {
-          0,
+          USB_BUSNAK_bm, /* No report is available before the first command. */
           USB_TYPE_BULKINT_gc | USB_MULTIPKT_bm | USB_AZLP_bm | USB_TCDSBL_bm | USB_BUFSIZE_DEFAULT_BUF64_gc,
           64, (uint16_t) &EP_MEM.dap_data, 0
         },
@@ -98,7 +98,7 @@ namespace USB {
         {
           0,
           USB_TYPE_BULKINT_gc                                 | USB_TCDSBL_bm | USB_BUFSIZE_DEFAULT_BUF64_gc,
-          0, (uint16_t) &EP_MEM.dap_data, 64
+          0, (uint16_t) &EP_MEM.dap_recv, 64
         },
         { /* not used */ },
       },
