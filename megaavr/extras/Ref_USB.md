@@ -4,7 +4,8 @@
 Curiosity Nano と、AVR64DU32 / AVR32DU32 / AVR64DU28 / AVR32DU28 の IC 単体を対象にします。
 Nano は **AVR64DU32 Curiosity Nano (native USB CDC + euboot)**、
 IC 単体は **AVR DU-series (native USB CDC + euboot, standalone)** を選択します。
-共通で内蔵 20 MHz、TCB1 による millis()/micros()、PF6 の BOOT 入力を使用します。
+初期設定は内蔵 20 MHz、TCB1 による millis()/micros() です。
+クロックやタイマーなどはツールメニューで変更できます。PF6 は BOOT 入力を使用します。
 状態 LED は Nano が PF2、汎用版が PA7 です。
 この機能は実験的です。Nano の基本通信と自動 USB 書き込みは実機確認済みです。
 確認した範囲と未確認項目は「検証」を参照してください。IC 単体はビルド確認のみです。
@@ -42,6 +43,49 @@ SERIAL_PORT_HARDWARE と SERIAL_PORT_HARDWARE_OPEN は Serial0 を指します�
 ボードパッケージとして配布する場合は、既存 SerialUPDI と同じ Python ランタイムを使用します。
 アップローダーに pip パッケージの追加は不要です。
 
+## ツールメニューの設定
+
+Nano と IC 単体の USB ボードには、次の共通メニューがあります。
+既存の開発版を導入済みの場合は megaavr を再コピーし、IDE を再起動してください。
+メニューが表示されない場合は、一度別のボードを選択してから USB ボードを選び直してください。
+今回の Nano では、この操作で追加メニューが表示されることをユーザーが確認しています。
+
+| メニュー | 選択肢・適用方法 |
+| --- | --- |
+| Clock Speed | 内蔵 12 / 16 / 20 / 24 MHz、水晶 12 / 16 / 20 / 24 MHz、外部クロック 16 / 20 / 24 MHz。スケッチの再書き込みで適用 |
+| millis()/micros() timer | TCB1（初期値）、TCB0、TCA0、無効。スケッチの再書き込みで適用 |
+| WDT Timeout / WDT "window" (sketch, before setup) | 無効、62.5 / 125 / 250 / 500 ms、1 / 2 / 4 / 8 秒。スケッチの再書き込みで適用 |
+| BOD level / BOD Mode | 元の DU ボードと同じ電圧・動作モード。「ブートローダを書き込む」で適用 |
+| Save EEPROM | EEPROM 保持（初期値）/ 非保持。「ブートローダを書き込む」で適用 |
+| Startup Time | 0（初期値）/ 1 / 2 / 4 / 8 / 16 / 32 / 64 ms。「ブートローダを書き込む」で適用 |
+| printf() / attachInterrupt() Version / Wire Library mode | 元の DU ボードと同じ選択肢。スケッチの再書き込みで適用 |
+| How to set FLMAP | 64 KB 品種で section 1（初期値）/ section 0 のロック、またはロック解除。32 KB 品種では効果なし |
+
+USB には 12 MHz 以上の周辺クロックが必要です。外部クロック・水晶を選ぶ場合は、
+実際にその周波数の発振源を接続してください。Nano でも外部発振源の追加が必要です。
+euboot 自体は、スケッチの選択にかかわらず内蔵 20 MHz で動作します。
+PF6 の BOOT 入力、UPDI、ブート領域の予約は維持します。
+USB 版ではリセット端子の切り替えと Flash ライブラリーの自己書き込み設定は提供しません。
+
+WDT は USB 初期化後、`setup()` を呼ぶ直前にソフトウェアで有効にします。
+Timeout が無効なら Window の選択にかかわらず WDT は無効です。
+スケッチ側で `<avr/wdt.h>` を読み込んで `wdt_reset()` を呼び、
+ウィンドウ使用時は閉じている期間を避けてください。
+コアによる自動クリアは行わず、WDT 設定のロックも行いません。
+この設定は `setup()` / `loop()` の監視用であり、それ以前の初期化は監視しません。
+
+元の DxCore のヒューズ方式と異なり、USB 版の WDT ヒューズは無効のままにします。
+ヒューズで WDT を有効にするとリセット直後に設定がロックされるため、短いタイムアウトや
+閉じたウィンドウが euboot の待機・書き込み処理を中断するのを避けるためです。
+ソフトウェアリセット後もまずヒューズの無効設定に戻り、euboot は WDT を自身で管理します。
+ヒューズ方式が必要な場合は既存の **AVR DU-series (no bootloader)** を使用してください。
+仕様は [AVR64DU28/32 データシートの CLKCTRL / WDT / USB の各章](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/AVR64DU-28-32-Prelim-DataSheet-DS40002548.pdf)を参照してください。
+
+USB での通常のスケッチ更新は EEPROM を消去しません。Save EEPROM は UPDI での
+チップ消去時の保持設定です。BOD・EEPROM・起動時間を変更するときは、
+Nano のデバッガー側または外部 UPDI 書き込み器からブートローダーを再書き込みしてください。
+追加メニューはビルド・設定値の検査対象です。各設定での実機動作は未確認です。
+
 ## 初回のブートローダー導入
 
 Nano にはデバッガー側とターゲット側の2つの USB コネクタがあります。
@@ -60,7 +104,8 @@ arduino-cli burn-bootloader --fqbn DxCoreUSB:megaavr:avrduusb --programmer nedbg
 
 ブート領域は先頭の 2,560 バイト、アプリ開始は 0x0A00 です。
 スケッチ上限は 62,976 バイトになります。
-BOOTSIZE=5、CODESIZE=0、SYSCFG0=0xD1 とし、UPDI を維持して PF6 を入力にします。
+BOOTSIZE=5、CODESIZE=0、初期設定の SYSCFG0=0xD1 とし、UPDI を維持して PF6 を入力にします。
+EEPROM 非保持を選んだ場合の SYSCFG0 は 0xD0 です。
 euboot 自体の再導入・fuse の変更・UPDI からの復旧にはデバッガー側 USB を使います。
 
 Nano 用の配布 HEX は hex/nano 以下のローカル再生成版です。
@@ -180,6 +225,12 @@ USB スケッチ書き込みは DxCore 付属の 8.1 です。
 
 ホスト側の回帰テスト:
 
+追加メニューは、Nano の全 11 クロック設定、単体 4 品種 × 2 USB 電源方式、
+Nano 初期設定、従来の USB なし DU ボードの計 21 ビルドで確認しました。
+USB ビルドでは HEX のアプリ領域、ベクタ位置、CDC ディスクリプタ、DMA 配置も検査しています。
+WDT・タイマー・printf・割り込み・Wire・FLMAP の代替設定を含みます。
+ホスト側の回帰テストは 28 件です。追加設定の実機動作は未確認です。
+
 ```powershell
 python -m unittest discover -s megaavr/tools/tests -v
 ```
@@ -220,16 +271,17 @@ Chip メニューで実際の型番を、USB power メニューで回路に合�
 | AVR64DU28 | 62,976 B | 8,192 B | 28pin-duseries |
 | AVR32DU28 | 30,208 B | 4,096 B | 28pin-duseries |
 
-20 MHz 内蔵クロック、TCB1 による millis()/micros() を使用します。
-64 KB 品種は FLMAP section 1 をロック、32 KB 品種は既定のマッピングを使用します。
+初期設定は 20 MHz 内蔵クロック、TCB1 による millis()/micros() です。
+64 KB 品種は初期設定で FLMAP section 1 をロック、32 KB 品種は既定のマッピングを使用します。
+共通のツールメニューで変更できます。
 SerialUSB / Serial / Serial0 / Serial1 の API は Nano 版と共通です。
 
 ### USB 電源の選択
 
 | USB power | 回路の前提 | ブートローダーとスケッチの動作 |
 | --- | --- | --- |
-| 5 V VDD, internal USB regulator | VDD に 5 V、VUSB は内蔵レギュレータの出力 | USBVREG=1、SYSCFG1=0x08 |
-| 3.3 V VUSB externally supplied | VDD と VUSB に外部レギュレータから 3.3 V を供給 | USBVREG=0、SYSCFG1=0x00 |
+| 5 V VDD, internal USB regulator | VDD に 5 V、VUSB は内蔵レギュレータの出力 | USBVREG=1、起動時間 0 ms で SYSCFG1=0x08 |
+| 3.3 V VUSB externally supplied | VDD と VUSB に外部レギュレータから 3.3 V を供給 | USBVREG=0、起動時間 0 ms で SYSCFG1=0x00 |
 
 初期の汎用構成は **USB VBUS から給電するバスパワー回路**を前提にします。
 3.3 V 方式では、USB VBUS を外部レギュレータで 3.3 V に変換して供給してください。

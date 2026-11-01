@@ -94,6 +94,13 @@ int main() {
   if (!onAfterInit()) sei();  // enable interrupts.
   #if defined(DXCORE_USB_CDC)
     SerialUSB.begin();
+    #if defined(DXCORE_USB_WDTCFG) && (DXCORE_USB_WDTCFG & WDT_PERIOD_gm)
+      // Start the selected application watchdog after USB initialization.
+      // Fuse WDT stays off: euboot must be able to wait for and upload over USB,
+      // including when the application selects a short or windowed watchdog.
+      while (WDT.STATUS & WDT_SYNCBUSY_bm) { }
+      _PROTECTED_WRITE(WDT.CTRLA, DXCORE_USB_WDTCFG);
+    #endif
   #endif
   setup();
   for (;;) {

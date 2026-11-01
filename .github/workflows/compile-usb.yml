@@ -53,6 +53,23 @@ jobs:
             -
           enable-deltas-report: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compile configurable clock, watchdog and library modes
+        uses: arduino/compile-sketches@main
+        with:
+          cli-version: "1.5.1"
+          fqbn: DxCore:megaavr:avrduusb:clock=24internal,usbWDTtimeout=63msec,usbWDTwindow=125msec,millis=disabled,printf=full,attach=manual,wiremode=mands,flmap=unlocked
+          sketch-paths: |
+            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+            - megaavr/extras/ci/test-sketch/usb/StreamAPI
+          platforms: |
+            - source-url: http://drazzy.com/package_drazzy.com_index.json
+              name: DxCore:megaavr
+            - source-path: megaavr
+              name: DxCore:megaavr
+          libraries: |
+            -
+          enable-deltas-report: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   standalone:
     runs-on: windows-latest
@@ -84,7 +101,7 @@ jobs:
         uses: arduino/compile-sketches@main
         with:
           cli-version: "1.5.1"
-          fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=external
+          fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=external,clock=16internal,usbWDTtimeout=8seconds,usbWDTwindow=1second,millis=disabled,printf=full,flmap=locksection0
           sketch-paths: |
             - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
             - megaavr/extras/ci/test-sketch/usb/StreamAPI

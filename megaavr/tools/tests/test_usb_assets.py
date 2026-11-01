@@ -13,6 +13,43 @@ generic = importlib.util.module_from_spec(BOOT_SPEC)
 BOOT_SPEC.loader.exec_module(generic)
 
 
+def board_entries(board):
+    entries = {}
+    prefix = board + "."
+    for line in (PLATFORM / "boards.txt").read_text(encoding="utf-8").splitlines():
+        if line.startswith(prefix):
+            key, value = line[len(prefix):].split("=", 1)
+            if key in entries:
+                raise AssertionError("Duplicate board property: " + prefix + key)
+            entries[key] = value
+    return entries
+
+
+def board_config(board, **choices):
+    entries = board_entries(board)
+    config = {key: value for key, value in entries.items() if not key.startswith("menu.")}
+    defaults = {}
+    for key in entries:
+        fields = key.split(".")
+        if fields[0] == "menu" and len(fields) == 3:
+            defaults.setdefault(fields[1], fields[2])
+    for menu, default in defaults.items():
+        prefix = "menu." + menu + "." + choices.pop(menu, default) + "."
+        config.update((key[len(prefix):], value) for key, value in entries.items() if key.startswith(prefix))
+    if choices:
+        raise AssertionError("Unknown menus: " + str(choices))
+    return config
+
+
+def resolved(config, key):
+    value = config[key]
+    for _ in range(10):
+        if "{" not in value:
+            return value
+        value = re.sub(r"\{([^}]+)\}", lambda match: config[match[1]], value)
+    raise AssertionError("Recursive property: " + key)
+
+
 class USBAssetTests(unittest.TestCase):
     def test_bootloader_matches_pinned_upstream_blob(self):
         text = (PLATFORM / "bootloaders/euboot/hex/euboot_LF2_SF6.hex").read_text(encoding="ascii")
@@ -46,7 +83,7 @@ class USBAssetTests(unittest.TestCase):
         start = int(board["avrduusb.build.text_section_start"].split("=")[1], 0)
         self.assertEqual(start, int(board["avrduusb.bootloader.BOOTSIZE"], 0) * 512)
         self.assertEqual(start + int(board["avrduusb.upload.maximum_size"]), 65536)
-        self.assertEqual(board["avrduusb.bootloader.SYSCFG0"], "0xD1")
+        self.assertEqual(int(resolved(board_config("avrduusb"), "bootloader.SYSCFG0"), 0), 0xD1)
         self.assertEqual(board["avrduusb.bootloader.CODESIZE"], "0x00")
         self.assertEqual(board["avrduusb.upload.wait_for_upload_port"], "false")
         self.assertEqual(board["avrduusb.upload.use_1200bps_touch"], "true")
@@ -112,24 +149,89 @@ class USBAssetTests(unittest.TestCase):
         for mcu in generic.MCUS:
             for power in ("regulator", "external"):
                 with self.subTest(mcu=mcu, power=power):
-                    config = {key: value for key, value in entries.items() if not key.startswith("menu.")}
-                    for menu_prefix in ("menu.chip." + mcu + ".", "menu.usbpower." + power + "."):
-                        config.update((key[len(menu_prefix):], value) for key, value in entries.items() if key.startswith(menu_prefix))
+                    config = board_config("avrduusb_generic", chip=mcu, usbpower=power)
                     capacity = 65536 if "64" in mcu else 32768
                     self.assertEqual(config["build.mcu"], mcu)
                     self.assertEqual(config["build.variant"], mcu[-2:] + "pin-duseries")
                     self.assertEqual(int(config["upload.maximum_size"]), capacity - 2560)
                     self.assertEqual(int(config["upload.maximum_data_size"]), capacity // 8)
                     self.assertEqual(config["build.usbvreg"], "1" if power == "regulator" else "0")
-                    self.assertEqual(config["bootloader.SYSCFG1"], "0x08" if power == "regulator" else "0x00")
+                    self.assertEqual(int(resolved(config, "bootloader.SYSCFG1"), 0), 0x08 if power == "regulator" else 0x00)
                     self.assertEqual(config["bootloader.BOOTSIZE"], "0x05")
-                    self.assertEqual(config["bootloader.SYSCFG0"], "0xD1")
+                    self.assertEqual(int(resolved(config, "bootloader.SYSCFG0"), 0), 0xD1)
                     self.assertIn("5:{bootloader.SYSCFG0}", config["bootloader.serupdifuse5"])
                     filename = re.sub(r"\{([^}]+)\}", lambda match: config[match[1]], config["bootloader.file"])
                     path = PLATFORM / "bootloaders" / filename
                     self.assertTrue(path.is_file(), filename)
                     self.assertEqual(manifest[path.name]["mcu"], mcu)
                     self.assertEqual(manifest[path.name]["power"], power)
+
+    def test_usb_clock_and_build_options(self):
+        original = board_entries("avrdu")
+        for board in ("avrduusb", "avrduusb_generic"):
+            entries = board_entries(board)
+            for menu in ("clock", "millis", "printf", "attach", "wiremode", "flmap"):
+                choices = [key.split(".")[2] for key in entries
+                           if key.startswith("menu." + menu + ".") and len(key.split(".")) == 3]
+                expected = {key.split(".")[2] for key in original
+                            if key.startswith("menu." + menu + ".") and len(key.split(".")) == 3}
+                self.assertEqual(set(choices), expected)
+                for choice in choices:
+                    with self.subTest(board=board, menu=menu, choice=choice):
+                        config = board_config(board, **{menu: choice})
+                        self.assertGreaterEqual(int(resolved(config, "build.f_cpu")[:-1]), 12000000)
+                        self.assertIn(config["build.clocksource"], ("0", "1", "2"))
+                        if menu == "clock":
+                            speed = int(re.match(r"\d+", choice)[0])
+                            source = "0" if choice.endswith("internal") else "1" if choice.endswith("crystal") else "2"
+                            self.assertEqual(resolved(config, "build.f_cpu"), str(speed * 1000000) + "L")
+                            self.assertEqual(config["build.clocksource"], source)
+                        self.assertIn("-DDXCORE_USB_CDC", resolved(config, "build.extra_flags"))
+                        for key in ("build.flmapopts", "build.flmapabr", "build.printf", "build.attachmode",
+                                    "build.millistimer", "build.wiremode"):
+                            self.assertNotIn("{", resolved(config, key))
+            default = board_config(board)
+            self.assertEqual(resolved(default, "build.f_cpu"), "20000000L")
+            self.assertEqual(default["build.millistimer"], "B1")
+            self.assertEqual(int(resolved(default, "bootloader.BODCFG"), 0), 0)
+            self.assertEqual(int(resolved(default, "bootloader.SYSCFG0"), 0), 0xD1)
+            self.assertEqual(int(resolved(default, "bootloader.SYSCFG1"), 0), 8)
+
+    def test_usb_fuse_options_preserve_boot_and_power(self):
+        modes = {"disabled": 0, "enabled": 5, "ensampfast": 6, "ensampslow": 22,
+                 "sampledfast": 10, "sampledslow": 26, "sampdisfast": 8,
+                 "sampdisslow": 24, "endisholdwake": 12}
+        for board in ("avrduusb", "avrduusb_generic"):
+            for level, voltage in enumerate(("1v9", "2v45", "2v70", "2v85")):
+                for mode, bits in modes.items():
+                    config = board_config(board, bodvoltage=voltage, bodmode=mode)
+                    self.assertEqual(int(resolved(config, "bootloader.BODCFG"), 0), level * 32 + bits)
+            powers = ("regulator", "external") if board.endswith("generic") else ("regulator",)
+            for power in powers:
+                for eesave in ("enable", "disable"):
+                    for sut, delay in enumerate(("0", "1", "2", "4", "8", "16", "32", "64")):
+                        choices = dict(eesave=eesave, startuptimeopti=delay)
+                        if board.endswith("generic"):
+                            choices["usbpower"] = power
+                        config = board_config(board, **choices)
+                        self.assertEqual(int(resolved(config, "bootloader.SYSCFG0"), 0), 0xD0 | (eesave == "enable"))
+                        self.assertEqual(int(resolved(config, "bootloader.SYSCFG1"), 0), sut | (8 if power == "regulator" else 0))
+                        self.assertEqual(int(config["bootloader.BOOTSIZE"], 0) * 512, 0xA00)
+                        self.assertEqual(config["bootloader.CODESIZE"], "0x00")
+
+    def test_usb_watchdog_choices_leave_bootloader_watchdog_unlocked(self):
+        periods = ("disabled", "63msec", "125msec", "250msec", "500msec",
+                   "1second", "2seconds", "4seconds", "8seconds")
+        for board in ("avrduusb", "avrduusb_generic"):
+            for timeout_index, timeout in enumerate(periods):
+                for window_index, window in enumerate(periods):
+                    with self.subTest(board=board, timeout=timeout, window=window):
+                        config = board_config(board, usbWDTtimeout=timeout, usbWDTwindow=window)
+                        self.assertEqual(int(config["bootloader.WDTCFG"], 0), 0)
+                        timeout_bits = timeout_index + 3 if timeout_index else 0
+                        window_bits = window_index + 3 if window_index else 0
+                        flags = resolved(config, "build.extra_flags").split()
+                        self.assertIn("-DDXCORE_USB_WDTCFG=" + format(window_bits * 16 + timeout_bits, "#010b"), flags)
 
 
 if __name__ == "__main__":
