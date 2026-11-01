@@ -50,7 +50,7 @@ void setup() {
 void loop() {
   static uint8_t count = 0;
   count++;
-  digitalWrite(LED_BUILTIN,CHANGE);
+  digitalWrite(LED_BUILTIN, CHANGE);
   delay(100);
-  analogWrite(PIN_PD6,count);
+  analogWrite(PIN_PD6, count);
 }

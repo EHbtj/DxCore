@@ -31,7 +31,7 @@ namespace SYS {
    *
    * Always run it after the USB has stopped.
    */
-  void reboot (void) {
+  void reboot(void) {
     D0PRINTF("<REBOOT>\r\n");
     DFLUSH();
     _PROTECTED_WRITE(RSTCTRL_SWRR, 1);
@@ -45,7 +45,7 @@ namespace SYS {
    * The result is 10-bit, so multiply by 10.0 to convert to 1V * 0.0001.
    * The ADC0 peripheral is operational only during voltage measurements.
    */
-  uint16_t get_vdd (void) {
+  uint16_t get_vdd(void) {
     CLKCTRL_MCLKTIMEBASE = F_CPU / 1000000.0;
     ADC0_INTFLAGS = ~0;
     ADC0_SAMPLE = 0;
@@ -63,23 +63,23 @@ namespace SYS {
     return _adc_reading;
   }
 
-  void delay_55us (void) {
+  void delay_55us(void) {
     delay_micros(55);
   }
 
-  void delay_100us (void) {
+  void delay_100us(void) {
     delay_micros(100);
   }
 
-  void delay_800us (void) {
+  void delay_800us(void) {
     delay_micros(800);
   }
 
-  void delay_2500us (void) {
+  void delay_2500us(void) {
     delay_micros(2500);
   }
 
-  void delay_125ms (void) {
+  void delay_125ms(void) {
     delay_millis(125);
   }
 

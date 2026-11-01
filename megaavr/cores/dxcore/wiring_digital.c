@@ -33,7 +33,7 @@
 inline __attribute__((always_inline)) void check_valid_pin_mode(uint8_t mode) {
   if (__builtin_constant_p(mode)) {
     // if (mode == OUTPUT_PULLUP)
-      // badArg("OUTPUT_PULLUP is not supported through pinMode due to overhead and impracticality vis-a-vis other pinMode features; use pinConfigure() or pinModeFast()");
+    // badArg("OUTPUT_PULLUP is not supported through pinMode due to overhead and impracticality vis-a-vis other pinMode features; use pinConfigure() or pinModeFast()");
     if (mode != INPUT && mode != OUTPUT && mode != INPUT_PULLUP) {
       badArg("The mode passed to pinMode must be INPUT, OUTPUT, or INPUT_PULLUP (these have numeric values of 0, 1, or 2); it was given a constant that was not one of these.");
     }
@@ -49,29 +49,33 @@ inline __attribute__((always_inline)) void pinMode(uint8_t pin, uint8_t mode) {
   check_valid_digital_pin(pin);         /* generate compile error if a constant that is not a valid pin is used as the pin */
   check_valid_pin_mode(mode);           /* generate compile error if a constant that is not a valid pin mode is used as the mode */
   #if defined(HARDWIRE_INPUT_ONLY)      /* Ugly hack to avoid setting certain pin output */
-    if (__builtin_constant_p(pin)) {
-      if (pin == HARDWIRE_INPUT_ONLY) {
-        if (__builtin_constant_p(mode)) {
-          if (mode == OUTPUT) {
-            /* If HARDWIRE_INPUT_ONLY is defined, that pin is to be an INPUT only */
-            badArg("This pin cannot be set as an output due to a known hardware defect in the Rev. A."); // future hardware will correct this defect;
-            return;
-          }
-        } else {
-          if (mode == OUTPUT) {
-            return;
-          }
+  if (__builtin_constant_p(pin)) {
+    if (pin == HARDWIRE_INPUT_ONLY) {
+      if (__builtin_constant_p(mode)) {
+        if (mode == OUTPUT) {
+          /* If HARDWIRE_INPUT_ONLY is defined, that pin is to be an INPUT only */
+          badArg("This pin cannot be set as an output due to a known hardware defect in the Rev. A."); // future hardware will correct this defect;
+          return;
+        }
+      } else {
+        if (mode == OUTPUT) {
+          return;
+        }
+      }
+    }
+  } else {
+    if (__builtin_constant_p(mode)) {
+      if (mode == OUTPUT) {
+        if (pin == HARDWIRE_INPUT_ONLY) {
+          return;
         }
       }
     } else {
-      if (__builtin_constant_p(mode)) {
-        if (mode == OUTPUT) {
-          if (pin == HARDWIRE_INPUT_ONLY) return;
-        }
-      } else {
-        if (pin == HARDWIRE_INPUT_ONLY && mode == OUTPUT) return;
+      if (pin == HARDWIRE_INPUT_ONLY && mode == OUTPUT) {
+        return;
       }
     }
+  }
   #endif
   _pinMode(pin, mode);
 }
@@ -85,7 +89,7 @@ void _pinMode(uint8_t pin, uint8_t mode) {
   if (mode == OUTPUT) {
     port->DIRSET = bit_mask;            /* Configure direction as output and done*/
   } else {                              /* mode == INPUT or INPUT_PULLUP - more complicated */
-                                        /* Calculate where pin control register is */
+    /* Calculate where pin control register is */
     uint8_t bit_pos = digitalPinToBitPosition(pin);
     volatile uint8_t *pin_ctrl = getPINnCTRLregister(port, bit_pos);
     uint8_t status = SREG;              /* Save state */
@@ -120,13 +124,14 @@ void digitalWrite(uint8_t pin, uint8_t val) {
 
   if (val == LOW) { /* If LOW */
     port->OUTCLR = bit_mask;
-  } else if (val == CHANGE) { /* If TOGGLE
-     * For the pullup setting part below
-     * we need to know if it's been set high or low
-     * otherwise the pullup state could get out of
-     * sync with the output bit. Annoying! But we should
-     * have to read it before writing OUTTGL, since that can
-     * have a 1 clock delay. So read first + invert */
+  } else if (val == CHANGE) {
+    /* If TOGGLE
+       * For the pullup setting part below
+       * we need to know if it's been set high or low
+       * otherwise the pullup state could get out of
+       * sync with the output bit. Annoying! But we should
+       * have to read it before writing OUTTGL, since that can
+       * have a 1 clock delay. So read first + invert */
     val = !(port->OUT & bit_mask);
     port->OUTTGL = bit_mask;
     // Now, for the pullup setting part below
@@ -137,7 +142,7 @@ void digitalWrite(uint8_t pin, uint8_t val) {
     // val will now be 0 (LOW) if the toggling made it LOW
     // or bit_mask if not. And further down, we only need to
     // know if it's
-  /* If HIGH OR  > TOGGLE  */
+    /* If HIGH OR  > TOGGLE  */
   } else {
     port->OUTSET = bit_mask;
   }
@@ -186,7 +191,9 @@ void digitalWrite(uint8_t pin, uint8_t val) {
 inline __attribute__((always_inline)) void digitalWriteFast(uint8_t pin, uint8_t val) {
   check_constant_pin(pin);
   check_valid_digital_pin(pin);
-  if (pin == NOT_A_PIN) return; // sigh... I wish I didn't have to catch this... but it's all compile time known so w/e
+  if (pin == NOT_A_PIN) {
+    return;  // sigh... I wish I didn't have to catch this... but it's all compile time known so w/e
+  }
   // Mega-0, Tiny-1 style IOPORTs
   // Assumes VPORTs exist starting at 0 for each PORT structure
   uint8_t mask = 1 << digital_pin_to_bit_position[pin];
@@ -195,20 +202,21 @@ inline __attribute__((always_inline)) void digitalWriteFast(uint8_t pin, uint8_t
 
   // Write pin value from VPORTx.OUT register
   vport = (VPORT_t *)(port * 4);
-/*
-  if (val == HIGH)
-    vport->OUT |= mask;
-  else if (val == LOW)
+  /*
+    if (val == HIGH)
+      vport->OUT |= mask;
+    else if (val == LOW)
+      vport->OUT &= ~mask;
+    else // CHANGE
+      vport->IN = mask;
+  */
+  if (val == LOW) {
     vport->OUT &= ~mask;
-  else // CHANGE
-    vport->IN = mask;
-*/
-  if (val == LOW)
-    vport->OUT &= ~mask;
-  else if (val == CHANGE)
+  } else if (val == CHANGE) {
     vport->IN |= mask;
-  else // HIGH
+  } else { // HIGH
     vport->OUT |= mask;
+  }
 
 }
 
@@ -260,24 +268,28 @@ inline __attribute__((always_inline)) int8_t digitalReadFast(uint8_t pin) {
 void openDrain(uint8_t pin, uint8_t state) {
   check_valid_digital_pin(pin);
   uint8_t bit_mask = digitalPinToBitMask(pin);
-  if (bit_mask == NOT_A_PIN)  return;
+  if (bit_mask == NOT_A_PIN) {
+    return;
+  }
   /* Get port */
   PORT_t *port = digitalPinToPortStruct(pin);
   port->OUTCLR = bit_mask;
-  if (state == LOW)
+  if (state == LOW) {
     port->DIRSET = bit_mask;
-  else if (state == CHANGE)
-    port->DIRTGL=bit_mask;
-  else // assume FLOATING
-    port->DIRCLR=bit_mask;
+  } else if (state == CHANGE) {
+    port->DIRTGL = bit_mask;
+  } else { // assume FLOATING
+    port->DIRCLR = bit_mask;
+  }
   turnOffPWM(pin);
 }
 
-inline __attribute__((always_inline)) void openDrainFast(uint8_t pin, uint8_t val)
-{
+inline __attribute__((always_inline)) void openDrainFast(uint8_t pin, uint8_t val) {
   check_constant_pin(pin);
   check_valid_digital_pin(pin);
-  if (pin == NOT_A_PIN) return; // sigh... I wish I didn't have to catch this... but it's all compile time known so w/e
+  if (pin == NOT_A_PIN) {
+    return;  // sigh... I wish I didn't have to catch this... but it's all compile time known so w/e
+  }
   // Mega-0, Tiny-1 style IOPORTs
   // Assumes VPORTs exist starting at 0 for each PORT structure
   uint8_t mask = 1 << digital_pin_to_bit_position[pin];
@@ -287,12 +299,13 @@ inline __attribute__((always_inline)) void openDrainFast(uint8_t pin, uint8_t va
   PORT_t *portstr;
   portstr = (PORT_t *)(0x400 + (0x20 * port));
 
-  if (val == LOW)
+  if (val == LOW) {
     vport->DIR |= mask;
-  else if (val == CHANGE)
+  } else if (val == CHANGE) {
     portstr->DIRTGL = mask;
-  else// FLOAT
+  } else { // FLOAT
     vport->DIR &= ~mask;
+  }
 }
 
 inline __attribute__((always_inline)) void pinModeFast(uint8_t pin, uint8_t mode) {
@@ -309,7 +322,7 @@ inline __attribute__((always_inline)) void pinModeFast(uint8_t pin, uint8_t mode
   uint8_t port = digital_pin_to_port[pin];
   VPORT_t *vport;
   vport = (VPORT_t *)(port * 4);
-  volatile uint8_t *pin_ctrl = (volatile uint8_t *) (0x410 + digital_pin_to_port[pin] * 0x20 + digital_pin_to_bit_position[pin]);
+  volatile uint8_t *pin_ctrl = (volatile uint8_t *)(0x410 + digital_pin_to_port[pin] * 0x20 + digital_pin_to_bit_position[pin]);
   if (mode == OUTPUT) {
     vport->DIR |= mask;
   } else {

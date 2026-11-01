@@ -55,9 +55,9 @@ Update: Some new parts (in the Sx-series, which are going all-in on safety-criti
 | UPDI Reset           | RSTCTRL_UPDIRF_bm |  1 << 5  | 0x20 | UPDI programming  | POR, BOR (by hw), manually | With Optiboot bootloaders, this is a jump straight to app.
 | Software Reset (SWR) | RSTCTRL_SWRF_bm   |  1 << 4  | 0x10 | When SWR used     | ..                         | Optiboot as supplied WILL run if SWRF is set. Thus, you can choose whether to reset to bootloader or app.
 | Watchdog Reset (WDR) | RSTCTRL_WDRF_bm   |  1 << 3  | 0x08 | When WDT expires w/out wdr instruction<br/>wdr executed before window in windowed mode| POR, BOR (by hw), manually | With Optiboot, we cannot tell WDR from an exit from previous execution of Optiboot. Thus, this triggers reboot to the app.
-| External Reset       | RSTCTRL_EXTRF_bm  |  1 << 2  | 0x04 | When reset pin is brought LOW | POR, BOR, Manually |
-| Brownout Reset (BOR) | RSTCTRL_BORF_bm   |  1 << 1  | 0x02 | When Vdd lower than BOD threshold and BOD enabled. | POR, manually. resets all flags except POR.
-| Power on reset (POR) | RSTCTRL_PORF_bm   |       1  | 0x01 | On power on (Vdd goes above V<sub>POR</sub> from below V<sub>PORR</sub>) | Manually. Resets all other reset flags
+| External Reset       | RSTCTRL_EXTRF_bm  |  1 << 2  | 0x04 | When reset pin is brought LOW | POR, BOR, Manually | |
+| Brownout Reset (BOR) | RSTCTRL_BORF_bm   |  1 << 1  | 0x02 | When Vdd lower than BOD threshold and BOD enabled. | POR, manually. resets all flags except POR. | |
+| Power on reset (POR) | RSTCTRL_PORF_bm   |       1  | 0x01 | On power on (Vdd goes above V<sub>POR</sub> from below V<sub>PORR</sub>) | Manually. Resets all other reset flags | |
 
 * All of these resets restore the peripheral registers [(SFRs)](https://github.com/SpenceKonde/AVR-Guidance/blob/master/Glossary.md#sfr) to their power on state - with the exception of the reset flag register, amd a small number of things that ONLY POR resets:
   * Some parts fail to reset the BOD/VLM registers except on POR (see errata if you're using VLM).

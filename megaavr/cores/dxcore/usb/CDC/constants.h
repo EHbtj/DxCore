@@ -34,7 +34,7 @@
 #define USB_EP_SIZE_gc(x)  ((x <= 8 ) ? USB_BUFSIZE_DEFAULT_BUF8_gc :\
                             (x <= 16) ? USB_BUFSIZE_DEFAULT_BUF16_gc:\
                             (x <= 32) ? USB_BUFSIZE_DEFAULT_BUF32_gc:\
-                                        USB_BUFSIZE_DEFAULT_BUF64_gc)
+                            USB_BUFSIZE_DEFAULT_BUF64_gc)
 
 /* EPFIFO number that identifies the EP */
 #define USB_EP_SETUP_OUT  (0x00)
@@ -101,21 +101,21 @@ namespace USB_NAMESPACE {
 
   /*** Callback functions for them. ***/
 
-  USB_EP_TABLE_t* get_endpointer_ptr (void);
-  USB_WM_TABLE_t* get_workmem_ptr (void);
+  USB_EP_TABLE_t *get_endpointer_ptr(void);
+  USB_WM_TABLE_t *get_workmem_ptr(void);
 
   /* Static descriptor getter */
-  size_t cb_get_descriptor_data (uint8_t* _buffer, uint16_t _index);
+  size_t cb_get_descriptor_data(uint8_t *_buffer, uint16_t _index);
 
   /* Endpoint Setup IN/OUT */
-  void ep_setup_clear (void);
-  void ep_setup_in_listen (void);
-  void ep_setup_out_listen (void);
-  void ep_setup_stalled (void);
+  void ep_setup_clear(void);
+  void ep_setup_in_listen(void);
+  void ep_setup_out_listen(void);
+  void ep_setup_stalled(void);
 
-  uint8_t cb_get_configuration (void);
-  bool cb_set_configuration (uint8_t _config);
-  void cb_clear_state (void);
+  uint8_t cb_get_configuration(void);
+  bool cb_set_configuration(uint8_t _config);
+  void cb_clear_state(void);
 
 
 } /* USB_CDC */

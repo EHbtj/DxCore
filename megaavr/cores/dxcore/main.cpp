@@ -5,7 +5,9 @@
 
 #include <Arduino.h>
 /* Required by some libraries to compile successfully. Even though it's nonsense in Arduino. */
-int atexit(void ( * /*func*/)()) { return 0; }
+int atexit(void ( * /*func*/)()) {
+  return 0;
+}
 
 /* What the bloody hell is going on? Why does everything fall down around my ears if disable
  * millis is set and these functions are located in any other file. What is different?!
@@ -15,67 +17,75 @@ int atexit(void ( * /*func*/)()) { return 0; }
  * OnBeforeInit(). As the name suggests, that's the callback called before init() is called
  * to set up the hardware */
 
-void __attribute__((weak)) initVariant() {return;} // Reserved for library use.
-void __attribute__((weak)) onPreMain() {return;}   // Called in .init3. Remember to bring your stone tools and loincloth
+void __attribute__((weak)) initVariant() {
+  return; // Reserved for library use.
+}
+void __attribute__((weak)) onPreMain() {
+  return; // Called in .init3. Remember to bring your stone tools and loincloth
+}
 // you must survive under the most primitive of conditions. No millis, no delay, F_CPU is defined to a speed other than the
 // frequency it's running at, constructors have not run, etc.
-void __attribute__((weak)) onBeforeInit() {return;} // Called before init. You can step up to maybe the bronze age, but
+void __attribute__((weak)) onBeforeInit() {
+  return; // Called before init. You can step up to maybe the bronze age, but
+}
 // things are still pretty rough, because the init() function has not been called and that sets up the clock, the timers
 // and a wide variety of other things.
-uint8_t __attribute__((weak)) onAfterInit() {return 0;} // Called between init() and the call to sei() to enable interrupts immediately prior to jumping to main.
+uint8_t __attribute__((weak)) onAfterInit() {
+  return 0; // Called between init() and the call to sei() to enable interrupts immediately prior to jumping to main.
+}
 // Unlike the others, this one has a return value. If you return a 1, sei() will not be called.
 
 
 #if defined(LOCK_FLMAP)
-  inline void doFLMAP() {
-    uint8_t temp = 0;
-    #if defined(FLMAPSECTION11)
-      #error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
-    #elif defined(FLMAPSECTION10)
-      #error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
-    #elif defined(FLMAPSECTION9)
-      #error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
-    #elif defined(FLMAPSECTION8)
-      #error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
-    #elif defined(FLMAPSECTION7)
-      temp = 0x70;
-      #warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
-    #elif defined(FLMAPSECTION6)
-      temp = 0x60;
-      #warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
-    #elif defined(FLMAPSECTION5)
-      temp = 0x50;
-      #warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
-    #elif defined(FLMAPSECTION4)
-      temp = 0x40;
-      #warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
-    #elif defined(FLMAPSECTION3)
-      temp = 0x30;
-    #elif defined(FLMAPSECTION2)
-      temp = 0x20;
-      #if _AVR_FLASH == 128
-        #pragma message("PROGMEM_MAPPED points to section 2 of the flash")
-      #endif
-    #elif defined(FLMAPSECTION1)
-      temp = 0x10;
-      #if _AVR_FLASH == 128
-        #pragma message("PROGMEM_MAPPED points to section 1 of the flash")
-      #endif
-    #elif defined(FLMAPSECTION0)
-      temp = 0x00;
-      #if _AVR_FLASH == 64
-        #pragma message("PROGMEM_MAPPED points to section 0 of the flash")
-      #endif
-    #else
-      #warning "no FLMAP section defined, yet LOCK_FLMAP IS!"
-      temp = 0x30; // should always end up as the highest up to 3.
-    #endif
-    NVMCTRL.CTRLB = temp;
-    temp |= 0x80;
-    _PROTECTED_WRITE(NVMCTRL_CTRLB, temp);
-  }
+inline void doFLMAP() {
+  uint8_t temp = 0;
+  #if defined(FLMAPSECTION11)
+#error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
+  #elif defined(FLMAPSECTION10)
+#error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
+  #elif defined(FLMAPSECTION9)
+#error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
+  #elif defined(FLMAPSECTION8)
+#error "No parts have been released with this much flash, and they'd have to change the layout of the register to make that work, so we can't guess what they'll do"
+  #elif defined(FLMAPSECTION7)
+  temp = 0x70;
+#warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
+  #elif defined(FLMAPSECTION6)
+  temp = 0x60;
+#warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
+  #elif defined(FLMAPSECTION5)
+  temp = 0x50;
+#warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
+  #elif defined(FLMAPSECTION4)
+  temp = 0x40;
+#warning "No parts have been released with this much flash as of time of writing. Assuming that bit 6 of NVMCTRL.CTRLB is FLMAP2 and everything else is the same"
+  #elif defined(FLMAPSECTION3)
+  temp = 0x30;
+  #elif defined(FLMAPSECTION2)
+  temp = 0x20;
+  #if _AVR_FLASH == 128
+#pragma message("PROGMEM_MAPPED points to section 2 of the flash")
+  #endif
+  #elif defined(FLMAPSECTION1)
+  temp = 0x10;
+  #if _AVR_FLASH == 128
+#pragma message("PROGMEM_MAPPED points to section 1 of the flash")
+  #endif
+  #elif defined(FLMAPSECTION0)
+  temp = 0x00;
+  #if _AVR_FLASH == 64
+#pragma message("PROGMEM_MAPPED points to section 0 of the flash")
+  #endif
+  #else
+#warning "no FLMAP section defined, yet LOCK_FLMAP IS!"
+  temp = 0x30; // should always end up as the highest up to 3.
+  #endif
+  NVMCTRL.CTRLB = temp;
+  temp |= 0x80;
+  _PROTECTED_WRITE(NVMCTRL_CTRLB, temp);
+}
 #else
-  #pragma message("Notice: PROGMEM_MAPPED not available as flash mapping is not locked.")
+#pragma message("Notice: PROGMEM_MAPPED not available as flash mapping is not locked.")
 #endif
 
 int main()  __attribute__((weak));
@@ -91,16 +101,18 @@ int main() {
   onBeforeInit(); // Emnpty callback called before init but after the .init stuff. First normal code executed
   init(); // Interrupts are turned on just prior to init() returning.
   initVariant();
-  if (!onAfterInit()) sei();  // enable interrupts.
+  if (!onAfterInit()) {
+    sei();  // enable interrupts.
+  }
   #if defined(DXCORE_USB_CDC)
-    SerialUSB.begin();
-    #if defined(DXCORE_USB_WDTCFG) && (DXCORE_USB_WDTCFG & WDT_PERIOD_gm)
-      // Start the selected application watchdog after USB initialization.
-      // Fuse WDT stays off: euboot must be able to wait for and upload over USB,
-      // including when the application selects a short or windowed watchdog.
-      while (WDT.STATUS & WDT_SYNCBUSY_bm) { }
-      _PROTECTED_WRITE(WDT.CTRLA, DXCORE_USB_WDTCFG);
-    #endif
+  SerialUSB.begin();
+  #if defined(DXCORE_USB_WDTCFG) && (DXCORE_USB_WDTCFG & WDT_PERIOD_gm)
+  // Start the selected application watchdog after USB initialization.
+  // Fuse WDT stays off: euboot must be able to wait for and upload over USB,
+  // including when the application selects a short or windowed watchdog.
+  while (WDT.STATUS & WDT_SYNCBUSY_bm) { }
+  _PROTECTED_WRITE(WDT.CTRLA, DXCORE_USB_WDTCFG);
+  #endif
   #endif
   setup();
   for (;;) {
@@ -148,17 +160,17 @@ int main() {
  * are aliases of each other per core_devices for compatibility
  */
 
-  /* Minimum: Reset if we wound up here through malfunction - this relies on user clearing the  *
-   * register on startup, which is rarely done in Arduino land.                                 */
-  void __attribute__((weak)) init_reset_flags() ;
-  void __attribute__((weak)) init_reset_flags() {
-    uint8_t flags = RSTCTRL.RSTFR;
-    RSTCTRL.RSTFR = flags;
-    if (flags == 0) {
-      _PROTECTED_WRITE(RSTCTRL.SWRR, 1);
-    }
-    GPIOR0 = flags;
+/* Minimum: Reset if we wound up here through malfunction - this relies on user clearing the  *
+ * register on startup, which is rarely done in Arduino land.                                 */
+void __attribute__((weak)) init_reset_flags() ;
+void __attribute__((weak)) init_reset_flags() {
+  uint8_t flags = RSTCTRL.RSTFR;
+  RSTCTRL.RSTFR = flags;
+  if (flags == 0) {
+    _PROTECTED_WRITE(RSTCTRL.SWRR, 1);
   }
+  GPIOR0 = flags;
+}
 
 #endif
 
@@ -192,112 +204,110 @@ int main() {
  * long time.                                                                                     *
  **************************************************************************************************/
 
-void _initThreeStuff() __attribute__ ((naked)) __attribute__((used)) __attribute__ ((section (".init3")));
+void _initThreeStuff() __attribute__((naked)) __attribute__((used)) __attribute__((section(".init3")));
 #if defined(USING_EUBOOT)
-  #if defined(SPM_FROM_APP)
-    #error "DxCore Flash self-programming is not supported with euboot."
+#if defined(SPM_FROM_APP)
+  #error "DxCore Flash self-programming is not supported with euboot."
+#endif
+void _initThreeStuff() {
+  // euboot cleared RSTFR and saved it in GPR0. Vectors start at BOOTSIZE.
+  _PROTECTED_WRITE(CPUINT_CTRLA, CPUINT_CTRLA & ~CPUINT_IVSEL_bm);
+  #if defined(LOCK_FLMAP)
+  doFLMAP();
   #endif
-  void _initThreeStuff() {
-    // euboot cleared RSTFR and saved it in GPR0. Vectors start at BOOTSIZE.
-    _PROTECTED_WRITE(CPUINT_CTRLA, CPUINT_CTRLA & ~CPUINT_IVSEL_bm);
-    #if defined(LOCK_FLMAP)
-      doFLMAP();
-    #endif
-    onPreMain();
-  }
+  onPreMain();
+}
 #elif (!defined(USING_OPTIBOOT))
-  #if !defined(SPM_FROM_APP)
-    // If we're not doing the SPM stuff, we need only check the flags
-    void _initThreeStuff() {
-      init_reset_flags();
-      #if defined(LOCK_FLMAP)
-        doFLMAP();
-      #endif
-      onPreMain(); // this runs, as the name implies, before the main() function is called - and indeed, even before class constructors.
-    }
-  #else
-  /*******************************************
-  * THIS FUNCTIONALITY IS ONLY EXPOSED ON    *
-  * DX-SERIES PARTS SO THIS CODE CANT-HAPPEN *
-  * megaTinyCore. You must write to flash    *
-  * using optiboot if required               *
-  *******************************************/
-    // if we are, we also need to move the vectors IFF we allow unrestricted writes only.
-    #if (SPM_FROM_APP == -1)
-      void _initThreeStuff() {
-        init_reset_flags();
-        #if defined(LOCK_FLMAP)
-          doFLMAP();
-        #endif
-        _PROTECTED_WRITE(CPUINT_CTRLA,CPUINT_IVSEL_bm);
-        onPreMain();
-      }
-    #else
-      void _initThreeStuff() {
-        init_reset_flags();
-        #if defined(LOCK_FLMAP)
-          doFLMAP();
-        #endif
-        onPreMain();
-      }
-    #endif
-    #if (SPM_FROM_APP == -1)
-      #if defined(__AVR_EA__) || defined(__AVR_EB__)
-        #warning "SPM from app not yet supported."
-
-        void __spm_entrypoint (void) __attribute__ ((naked)) __attribute__((used)) __attribute__ ((section (".trampolines")));
-        void __spm_entrypoint (void)
-        {
-          __asm__ __volatile__(
-                    "rjmp .+4"                "\n\t" // Jump over this if we got here the wrong way
-                   "EntryPointSPM:"           "\n\t" // this is the label we call
-                    "nop"                     "\n\t" // If this worked, there would have to be code here,
-                    "ret"::);                        // by 2, and then return.
-        }
-      #else
-        /* Declared as being located in .trampolines so it gets put way at the start of the binary. This guarantees that
-         * it will be in the first page of flash. Must be marked ((used)) or LinkTime Optimization (LTO) will see
-         * that nothing actually calls it and optimize it away. The trick of course is that it can be called if
-         * the user wants to - but it's designed to be called via constructions like:
-         * __asm__ __volatile__ ("call EntryPointSPM" : "+z" (uint16_t) (address);
-         * see Flash.h
-         * This must be located before 0x0200 in the flash. The interrupt vectors go from 0x0004 to 0x0103 (0x0000-0x0003 is
-         * the reset vector). The only isn that matters is the spm z+. If it were easier to modify the crt.s file, we could use some
-         * interrupt vector we weren't using (like the NMI vector, which is never enabled by the core and can only ever trigger
-         * from CFD int (which can also be a normal interrupt) and checksum errors (which we don't support because we would then
-         * need to post-process the hex files to add checksums)) - then we could replace the jmp instruction dictated by the CRT
-         * with the spm z+, ret seqauence. But we can't easily change that, as it's one of the things precompiled by the toolchain
-         * package. So we need to work out another way for those 4 bytes (actually, we only care bout the first 2 bytes, the spm)
-         * to be located within those remaining 248 bytes of the first page. The priorities given to different sections however
-         * don't make this easy: PROGMEM has an extremely high priority, and can of course be longer than 242 bytes. So it has
-         * to come before PROGMEM, which comes before even .init. Only place I could find to put it was this - trampolines.
-         * .trampolines comes before progmem. The function must be ((naked)) and it must be ((used)). But that's not enough
-         * because sometimes execution passes through .trampolines, and would run into this, execute an SPM instruction
-         * (failing because the NVMCTRL.CTRLA hadn't been set), and then return. But this was happening before a return address
-         * (or anything else) had been pushed onto the stack, so the SP still pointed to the top of flash, so ret would not work.
-         * To make this work, you need to guard it. This is done with the rjmp that hops over the spm and ret instructions unless
-         * you jump directly to the entrypoint.
-         */
-        void __spm_entrypoint (void) __attribute__ ((naked)) __attribute__((used)) __attribute__ ((section (".trampolines")));
-        void __spm_entrypoint (void)
-        {
-          __asm__ __volatile__(
-                    "rjmp .+4"                "\n\t" // Jump over this if we got here the wrong way
-                   "EntryPointSPM:"           "\n\t" // this is the label we call
-                    "spm z+"                  "\n\t" // write r0, r1 to location pointed to by r30,r31 with posrincrement
-                    "ret"::);                        // by 2, and then return.
-        }
-      #endif // end platform specific.
-    #endif // end if spm from app == -1
-  #endif // end if spm from app defined
-  // Finally, none of these three things need to be done if running optiboot!
-  // We want the vectors in the alt location, it checks, clears, and stashes the reset flags (in GPR0)
-  // and it providews the entrypoint we call to write to flash.
+#if !defined(SPM_FROM_APP)
+// If we're not doing the SPM stuff, we need only check the flags
+void _initThreeStuff() {
+  init_reset_flags();
+  #if defined(LOCK_FLMAP)
+  doFLMAP();
+  #endif
+  onPreMain(); // this runs, as the name implies, before the main() function is called - and indeed, even before class constructors.
+}
 #else
-  void _initThreeStuff() {
-    #if defined(LOCK_FLMAP)
-      doFLMAP();
-    #endif
-    onPreMain();
-  }
+/*******************************************
+* THIS FUNCTIONALITY IS ONLY EXPOSED ON    *
+* DX-SERIES PARTS SO THIS CODE CANT-HAPPEN *
+* megaTinyCore. You must write to flash    *
+* using optiboot if required               *
+*******************************************/
+// if we are, we also need to move the vectors IFF we allow unrestricted writes only.
+#if (SPM_FROM_APP == -1)
+void _initThreeStuff() {
+  init_reset_flags();
+  #if defined(LOCK_FLMAP)
+  doFLMAP();
+  #endif
+  _PROTECTED_WRITE(CPUINT_CTRLA, CPUINT_IVSEL_bm);
+  onPreMain();
+}
+#else
+void _initThreeStuff() {
+  init_reset_flags();
+  #if defined(LOCK_FLMAP)
+  doFLMAP();
+  #endif
+  onPreMain();
+}
+#endif
+#if (SPM_FROM_APP == -1)
+#if defined(__AVR_EA__) || defined(__AVR_EB__)
+#warning "SPM from app not yet supported."
+
+void __spm_entrypoint(void) __attribute__((naked)) __attribute__((used)) __attribute__((section(".trampolines")));
+void __spm_entrypoint(void) {
+  __asm__ __volatile__(
+    "rjmp .+4"                "\n\t" // Jump over this if we got here the wrong way
+    "EntryPointSPM:"           "\n\t" // this is the label we call
+    "nop"                     "\n\t" // If this worked, there would have to be code here,
+    "ret"::);                        // by 2, and then return.
+}
+#else
+/* Declared as being located in .trampolines so it gets put way at the start of the binary. This guarantees that
+ * it will be in the first page of flash. Must be marked ((used)) or LinkTime Optimization (LTO) will see
+ * that nothing actually calls it and optimize it away. The trick of course is that it can be called if
+ * the user wants to - but it's designed to be called via constructions like:
+ * __asm__ __volatile__ ("call EntryPointSPM" : "+z" (uint16_t) (address);
+ * see Flash.h
+ * This must be located before 0x0200 in the flash. The interrupt vectors go from 0x0004 to 0x0103 (0x0000-0x0003 is
+ * the reset vector). The only isn that matters is the spm z+. If it were easier to modify the crt.s file, we could use some
+ * interrupt vector we weren't using (like the NMI vector, which is never enabled by the core and can only ever trigger
+ * from CFD int (which can also be a normal interrupt) and checksum errors (which we don't support because we would then
+ * need to post-process the hex files to add checksums)) - then we could replace the jmp instruction dictated by the CRT
+ * with the spm z+, ret seqauence. But we can't easily change that, as it's one of the things precompiled by the toolchain
+ * package. So we need to work out another way for those 4 bytes (actually, we only care bout the first 2 bytes, the spm)
+ * to be located within those remaining 248 bytes of the first page. The priorities given to different sections however
+ * don't make this easy: PROGMEM has an extremely high priority, and can of course be longer than 242 bytes. So it has
+ * to come before PROGMEM, which comes before even .init. Only place I could find to put it was this - trampolines.
+ * .trampolines comes before progmem. The function must be ((naked)) and it must be ((used)). But that's not enough
+ * because sometimes execution passes through .trampolines, and would run into this, execute an SPM instruction
+ * (failing because the NVMCTRL.CTRLA hadn't been set), and then return. But this was happening before a return address
+ * (or anything else) had been pushed onto the stack, so the SP still pointed to the top of flash, so ret would not work.
+ * To make this work, you need to guard it. This is done with the rjmp that hops over the spm and ret instructions unless
+ * you jump directly to the entrypoint.
+ */
+void __spm_entrypoint(void) __attribute__((naked)) __attribute__((used)) __attribute__((section(".trampolines")));
+void __spm_entrypoint(void) {
+  __asm__ __volatile__(
+    "rjmp .+4"                "\n\t" // Jump over this if we got here the wrong way
+    "EntryPointSPM:"           "\n\t" // this is the label we call
+    "spm z+"                  "\n\t" // write r0, r1 to location pointed to by r30,r31 with posrincrement
+    "ret"::);                        // by 2, and then return.
+}
+#endif // end platform specific.
+#endif // end if spm from app == -1
+#endif // end if spm from app defined
+// Finally, none of these three things need to be done if running optiboot!
+// We want the vectors in the alt location, it checks, clears, and stashes the reset flags (in GPR0)
+// and it providews the entrypoint we call to write to flash.
+#else
+void _initThreeStuff() {
+  #if defined(LOCK_FLMAP)
+  doFLMAP();
+  #endif
+  onPreMain();
+}
 #endif

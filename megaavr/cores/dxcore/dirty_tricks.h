@@ -122,9 +122,9 @@
   #define _NOPNOP() __asm__ __volatile__ ("rjmp .+0")
 #endif
 #ifndef _NOP8
-  #define _NOP8()   __asm__ __volatile__ ("rjmp .+2"  "\n\t"   /* 2 clk jump over next instruction */ \
-                                          "ret"       "\n\t"   /* 4 clk return "wha? why here?" */    \
-                                          "rcall .-4" "\n\t" ) /* 2 clk "Oh, I see. We jump over a return (2 clock) call it, and then immediately return." */
+#define _NOP8()   __asm__ __volatile__ ("rjmp .+2"  "\n\t"   /* 2 clk jump over next instruction */ \
+                                        "ret"       "\n\t"   /* 4 clk return "wha? why here?" */    \
+                                        "rcall .-4" "\n\t" ) /* 2 clk "Oh, I see. We jump over a return (2 clock) call it, and then immediately return." */
 #endif
 
 /*
@@ -141,10 +141,10 @@ Not enabled. Ugly ways to get delays at very small flash cost.
   #endif
 */
 #ifndef _NOP14
-  #define _NOP14()  __asm__ __volatile__ ("rjmp .+2"  "\n\t"   /* same idea as above. */ \
-                                          "ret"       "\n\t"   /* Except now it's no longer able to beat the loop if it has a free register. */ \
-                                          "rcall .-4" "\n\t"   /* so this is unlikely to be better, ever. */ \
-                                          "rcall .-6" "\n\t" )
+#define _NOP14()  __asm__ __volatile__ ("rjmp .+2"  "\n\t"   /* same idea as above. */ \
+                                        "ret"       "\n\t"   /* Except now it's no longer able to beat the loop if it has a free register. */ \
+                                        "rcall .-4" "\n\t"   /* so this is unlikely to be better, ever. */ \
+                                        "rcall .-6" "\n\t" )
 #endif
 
 /* Beyond this, just use a loop.
@@ -329,24 +329,24 @@ Not enabled. Ugly ways to get delays at very small flash cost.
  * _makeFastPtr_d() uses only X or Y register, and should be used if you expect to be accessing constant compile time known constant offsets
  *
  */
-  /*********************
-  | Now a few functions |
-  **********************/
-  /* These are really dirty pin manipulation functions that are always-inline
-   * intended to be much faster than the stock pinMode, because we often have already looked up the things we need to knoww
-   * and frequently call the whole bloody pinmode function when we already have the tables in memory, and we know what mode we're asking too.
-   */
+/*********************
+| Now a few functions |
+**********************/
+/* These are really dirty pin manipulation functions that are always-inline
+ * intended to be much faster than the stock pinMode, because we often have already looked up the things we need to knoww
+ * and frequently call the whole bloody pinmode function when we already have the tables in memory, and we know what mode we're asking too.
+ */
 
 typedef union __bwpvol {
   uint8_t              ab[2];
   uint16_t             aw;
-  volatile uint8_t*    ptr;
+  volatile uint8_t    *ptr;
 } _bytePtrVol_t;
 
 typedef union __bwptr {
   uint8_t             ab[2]; /* ab for address as bytes */
   uint16_t            aw; /* aw for address as a word */
-  uint8_t*            ptr;
+  uint8_t            *ptr;
 } _bytePtr_t;
 
 
@@ -369,44 +369,44 @@ typedef union __bwl {
 
 
 
-  inline void __attribute__ ((always_inline)) _setOutput(uint8_t portnum, uint8_t bit_mask) {
-    /* pinMode(pin,OUTPUT) in only like 5 clocks! You don't wanna know how many it takes the official core! */
-    _swap(portnum); //1 clock
-    portnum <<= 1; // 1 clock
-    portnum++;     // 1 clock
-    _bytePtrVol_t port_dirset_reg;
-    port_dirset_reg.ab[1] = 0x04; // All port structs start with 0s04
-    port_dirset_reg.ab[0] = portnum;
-    *port_dirset_reg.ptr = bit_mask;
-  }
+inline void __attribute__((always_inline)) _setOutput(uint8_t portnum, uint8_t bit_mask) {
+  /* pinMode(pin,OUTPUT) in only like 5 clocks! You don't wanna know how many it takes the official core! */
+  _swap(portnum); //1 clock
+  portnum <<= 1; // 1 clock
+  portnum++;     // 1 clock
+  _bytePtrVol_t port_dirset_reg;
+  port_dirset_reg.ab[1] = 0x04; // All port structs start with 0s04
+  port_dirset_reg.ab[0] = portnum;
+  *port_dirset_reg.ptr = bit_mask;
+}
 
-  inline void __attribute__ ((always_inline)) _setInput(uint8_t portnum, uint8_t bit_mask) {
-    _swap(portnum); //1 clock
-    portnum <<= 1; // 1 clock
-    portnum  += 2; // 1 clock
-    _bytePtrVol_t port_dirclr_reg;
-    port_dirclr_reg.ab[1] = 0x04; // All port structs start with 0s04
-    port_dirclr_reg.ab[0] = portnum;
-    *port_dirclr_reg.ptr = bit_mask;
-  }
+inline void __attribute__((always_inline)) _setInput(uint8_t portnum, uint8_t bit_mask) {
+  _swap(portnum); //1 clock
+  portnum <<= 1; // 1 clock
+  portnum  += 2; // 1 clock
+  _bytePtrVol_t port_dirclr_reg;
+  port_dirclr_reg.ab[1] = 0x04; // All port structs start with 0s04
+  port_dirclr_reg.ab[0] = portnum;
+  *port_dirclr_reg.ptr = bit_mask;
+}
 
-  inline void __attribute__ ((always_inline)) _setValueHigh(uint8_t portnum, uint8_t bit_mask) {
-    _swap(portnum); //1 clock
-    portnum <<= 1; // 1 clock
-    portnum  += 5;     // 1 clock
-    _bytePtrVol_t port_outset_reg;
-    port_outset_reg.ab[1] = 0x04; // All port structs start with 0s04
-    port_outset_reg.ab[0] = portnum;
-    *port_outset_reg.ptr = bit_mask;
-  }
+inline void __attribute__((always_inline)) _setValueHigh(uint8_t portnum, uint8_t bit_mask) {
+  _swap(portnum); //1 clock
+  portnum <<= 1; // 1 clock
+  portnum  += 5;     // 1 clock
+  _bytePtrVol_t port_outset_reg;
+  port_outset_reg.ab[1] = 0x04; // All port structs start with 0s04
+  port_outset_reg.ab[0] = portnum;
+  *port_outset_reg.ptr = bit_mask;
+}
 
-  inline void __attribute__ ((always_inline)) _setValueLow(uint8_t portnum, uint8_t bit_mask) {
-    _swap(portnum); //1 clock
-    portnum <<= 1; // 1 clock
-    portnum  += 6;     // 1 clock
-    _bytePtrVol_t port_outclr_reg;
-    port_outclr_reg.ab[1] = 0x04; // All port structs start with 0s04
-    port_outclr_reg.ab[0] = portnum;
-    *port_outclr_reg.ptr = bit_mask;
-  }
+inline void __attribute__((always_inline)) _setValueLow(uint8_t portnum, uint8_t bit_mask) {
+  _swap(portnum); //1 clock
+  portnum <<= 1; // 1 clock
+  portnum  += 6;     // 1 clock
+  _bytePtrVol_t port_outclr_reg;
+  port_outclr_reg.ab[1] = 0x04; // All port structs start with 0s04
+  port_outclr_reg.ab[0] = portnum;
+  *port_outclr_reg.ptr = bit_mask;
+}
 #endif

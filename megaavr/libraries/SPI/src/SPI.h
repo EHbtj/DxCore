@@ -203,13 +203,13 @@
 
 //#define EXTERNAL_NUM_INTERRUPTS   NUM_TOTAL_PINS
 inline __attribute__((always_inline)) void _check_valid_spi(uint8_t div) {
-    if (__builtin_constant_p(div)) {
-      if (!(SPI_CLOCK_DIV2 == div || SPI_CLOCK_DIV4 == div || SPI_CLOCK_DIV8 == div || SPI_CLOCK_DIV16 == div || SPI_CLOCK_DIV32 == div || SPI_CLOCK_DIV64 == div || SPI_CLOCK_DIV128 == div)) {
-        badArg("setClockDivider called with argument that is not an SPI_CLOCK_DIVn constant");
-        // don't let them pass garbage to it
-      }
+  if (__builtin_constant_p(div)) {
+    if (!(SPI_CLOCK_DIV2 == div || SPI_CLOCK_DIV4 == div || SPI_CLOCK_DIV8 == div || SPI_CLOCK_DIV16 == div || SPI_CLOCK_DIV32 == div || SPI_CLOCK_DIV64 == div || SPI_CLOCK_DIV128 == div)) {
+      badArg("setClockDivider called with argument that is not an SPI_CLOCK_DIVn constant");
+      // don't let them pass garbage to it
     }
   }
+}
 
 class SPISettings {
   public:
@@ -379,4 +379,3 @@ class SPIClass {
 #endif
 
 #endif
-

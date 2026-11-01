@@ -1,6 +1,7 @@
 // Compile contract for the native USB board; not an interactive demonstration.
 static_assert(__is_base_of(Stream, SerialUSBClass), "CDC must implement Arduino Stream");
-static_assert(HWSERIAL1_MUX_DEFAULT == HWSERIAL1_MUX_PINSWAP_2, "Nano UART must use PD6/PD7");
+// The default is a pin-table row, while MUX_PINSWAP_2 holds shifted register bits.
+static_assert(HWSERIAL1_MUX_DEFAULT == 2, "USB UART1 must default to PD6/PD7");
 
 HardwareSerial &legacy = Serial;
 HardwareSerial &physical = SERIAL_PORT_HARDWARE;

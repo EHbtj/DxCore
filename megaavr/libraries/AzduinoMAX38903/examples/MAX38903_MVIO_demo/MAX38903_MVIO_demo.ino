@@ -65,12 +65,12 @@ void loop() {
   }
 
   Serial.println("Turning off regulator.");
-  setMAX38903Voltage(voltage_options[i]);
+  setMAX38903Voltage(REG_OFF);
   delay(1000);
   if (!MVIO.STATUS) {
     Serial.println("MVIO not powered anymore");
   } else {
-    Serial.println("MVIO is still powered, this is unexpected...")
+    Serial.println("MVIO is still powered, this is unexpected...");
   }
   delay(10000);
 }

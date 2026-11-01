@@ -15,7 +15,7 @@ on:
 
 jobs:
   compile:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       platform-name: DxCore:megaavr

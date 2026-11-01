@@ -43,7 +43,7 @@ typedef void (*voidFuncPtr)(void);
 typedef uint8_t (*byteFuncPtr)(void);
 
 #ifndef CORE_ATTACH_OLD
-  void __attribute__((naked)) __attribute__((noreturn)) isrBody();
+void __attribute__((naked)) __attribute__((noreturn)) isrBody();
 #endif
 #ifdef __cplusplus
 } // extern "C"

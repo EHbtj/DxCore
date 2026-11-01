@@ -11,13 +11,13 @@
     "build_support/peripheral.h": "0b6b21a77d157348d52858568e9f66f3f2616a7bca911d3098bd83c33ebea949",
     "build_support/variant.h": "8ea05791b7487cb5f04a76db17017274a31c050483eabc0005ba1c7d68736783",
     "src/configuration.h": "b2bab44a77154db836ade1ed62002eeacc5b1ac47f4b9fa50bcdf3f9c51a94b0",
-    "src/fuse.c": "3b3d3dbd1761325ebdc390790cdfbcf20daf6f89d275be1249d6974c30063ee7",
-    "src/jtag.cpp": "d6e7561bf2f8afdf4091aece48e67c821f3250906a8dddac2a5b036814c7c9c6",
-    "src/main.cpp": "41fd33796b4d220e8f8b11c726f13f3132c0f30d8bfccc1edb6d97abae9c0b4c",
-    "src/nvmv4.cpp": "bb43055745e682f2cbcc90aa3e9a747b529a6b626843d2d461b2c71e5430a274",
-    "src/prototype.h": "9a7aecf01ea55e991bb17c5b2c2eb540f52ed4f5d84c36a87d4f208e226df2c7",
-    "src/sys.cpp": "4f989c27d5bf6516de4eb2ebdbcb195632a76c6b35e813c9c759318696cbf0f3",
-    "src/usb.cpp": "045b6401be7926926be654f4af40e0b5e6338ac505edcc7f6c64250d5ce0087f"
+    "src/fuse.c": "a31d6a8706fb7426cab5b1fb560fac6e92ead4b17a20acd185fc524d22502ed8",
+    "src/jtag.cpp": "eb38f634c5de9f682f2e30a3e7a7ef0e79c187784e9c2502a802fc0ac46f55ef",
+    "src/main.cpp": "b4ae31aef609ded25f71441cd32b265b2c57bc500b8eeab16a0357fea594f708",
+    "src/nvmv4.cpp": "6ddde7e3aed297ab2c9a710e6c34f99f4fe6d63beed2c9c7d605fbcf74b8dfac",
+    "src/prototype.h": "0dc02cc9b0d3c02702e58d31b060784c9311c4b9847664c0fb414455bb581353",
+    "src/sys.cpp": "9fc7a6cae5c152f825dee6bf44c80425c7c8916a4799713ade1656305194deb2",
+    "src/usb.cpp": "69a7b216b8dfe03a156858725a4b98fb6e4af14c7ac8082ea67942472d4c0bef"
   },
   "device_headers": {
     "avr64du32": "ec8cfd7bf1a9f0e16cad4447f0a1b3b5f7304656a7c09fcb2495b02e13d957c4",

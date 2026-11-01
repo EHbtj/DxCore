@@ -32,5 +32,7 @@ void setup() {
 }
 void loop() {
   if (legacy.available()) Serial1.write((uint8_t)legacy.read());
-  digitalWrite(LED_BUILTIN, (millis() / 1000) & 1);
+  #if !defined(MILLIS_USE_TIMERNONE)
+    digitalWrite(LED_BUILTIN, (millis() / 1000) & 1);
+  #endif
 }

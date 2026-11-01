@@ -161,18 +161,18 @@
  * announced and released products - these fuinctions in total waste 202 bytes of flash per serial instance, with code that is identical except for a single constant./
  */
 #if !defined(LTODISABLED)
-#if !defined(USE_ASM_TXC)
-  #define USE_ASM_TXC 2    // A bit slower than 1 in exchange for halfduplex.
-//#define USE_ASM_TXC 1    // This *appears* to work? It's the easy one. saves 6b for 1 USART and 44b for each additional one
-#endif
+  #if !defined(USE_ASM_TXC)
+    #define USE_ASM_TXC 2    // A bit slower than 1 in exchange for halfduplex.
+    //#define USE_ASM_TXC 1    // This *appears* to work? It's the easy one. saves 6b for 1 USART and 44b for each additional one
+  #endif
 
-#if !defined(USE_ASM_RXC)
-  #define USE_ASM_RXC 1    // This now works. Saves only 4b for 1 usart but 98 for each additional one
-#endif
+  #if !defined(USE_ASM_RXC)
+    #define USE_ASM_RXC 1    // This now works. Saves only 4b for 1 usart but 98 for each additional one
+  #endif
 
-#if !defined(USE_ASM_DRE)
-  #define USE_ASM_DRE 1    // This is the hard one...Depends on BOTH buffers, and has that other method of calling it. saves 34b for 1 USART and 68b for each additional one
-#endif
+  #if !defined(USE_ASM_DRE)
+    #define USE_ASM_DRE 1    // This is the hard one...Depends on BOTH buffers, and has that other method of calling it. saves 34b for 1 USART and 68b for each additional one
+  #endif
 #else
   #warning "LTO has been disabled! ASM TXC/RXC/DRE not available. USART falling back to the old, flash-inefficient implementation with fewer features."
   #if defined(USE_ASM_TXC)
@@ -201,33 +201,33 @@
 #endif
 
 #if USE_ASM_DRE == 1 && !((SERIAL_RX_BUFFER_SIZE == 256 || SERIAL_RX_BUFFER_SIZE == 128 || SERIAL_RX_BUFFER_SIZE == 64 || SERIAL_RX_BUFFER_SIZE == 32 || SERIAL_RX_BUFFER_SIZE == 16) && \
-                          (SERIAL_TX_BUFFER_SIZE == 256 || SERIAL_TX_BUFFER_SIZE == 128 || SERIAL_TX_BUFFER_SIZE == 64 || SERIAL_TX_BUFFER_SIZE == 32 || SERIAL_TX_BUFFER_SIZE == 16))
-  #error "Assembly Data Register Empty (DRE) ISR is only supported when both TX and RX buffer sizes are 256, 128, 64, 32 or 16 bytes"
+(SERIAL_TX_BUFFER_SIZE == 256 || SERIAL_TX_BUFFER_SIZE == 128 || SERIAL_TX_BUFFER_SIZE == 64 || SERIAL_TX_BUFFER_SIZE == 32 || SERIAL_TX_BUFFER_SIZE == 16))
+#error "Assembly Data Register Empty (DRE) ISR is only supported when both TX and RX buffer sizes are 256, 128, 64, 32 or 16 bytes"
 #endif
 
 
 /* Macros to help the rare few who want sync or MSPI mode */
 #define syncBegin(port, baud, config, syncopts) ({\
-  if ((config & 0xC0) == 0x40)                    \
+    if ((config & 0xC0) == 0x40)                    \
     {pinConfigure(port.getPin(2), syncopts);      \
-    port.begin(baud >> 3, config);                \
-  }})
+      port.begin(baud >> 3, config);                \
+    }})
 
 #define mspiBegin(port, baud, config, invert) ({  \
-  if ((config & 0xC0) == 0xC0) {                  \
-    pinConfigure(port.getPin(2), invert);         \
-    port.begin(baud >> 3, config);                \
-  }})
+    if ((config & 0xC0) == 0xC0) {                  \
+      pinConfigure(port.getPin(2), invert);         \
+      port.begin(baud >> 3, config);                \
+    }})
 
 
 class HardwareSerial : public Stream {
-/* DANGER DANGER DANGER
- * CHANGING THE MEMBER VARIABLES BETWEEN HERE AND THE OTHER SCARY COMMENT WILL COMPLETELY BREAK SERIAL
- * WHEN USE_ASM_DRE or USE_ASM_RXC is used!
- * DANGER DANGER DANGER */
- protected:
-    volatile USART_t * _hwserial_module;  // pointer to the USART module, needed to access the correct registers.
-    uint8_t * _usart_pins;   // pointer to the pin set, in PROGMEM
+    /* DANGER DANGER DANGER
+     * CHANGING THE MEMBER VARIABLES BETWEEN HERE AND THE OTHER SCARY COMMENT WILL COMPLETELY BREAK SERIAL
+     * WHEN USE_ASM_DRE or USE_ASM_RXC is used!
+     * DANGER DANGER DANGER */
+  protected:
+    volatile USART_t *_hwserial_module;   // pointer to the USART module, needed to access the correct registers.
+    uint8_t *_usart_pins;    // pointer to the pin set, in PROGMEM
     uint8_t _mux_count;     // maximum MUX
     uint8_t _pin_set;       // the active pin set for setting the correct pins for I/O
     volatile uint8_t _state = 0; // LSB = _written. Second bit = half duplex (LBME) and special handling needed.
@@ -240,37 +240,80 @@ class HardwareSerial : public Stream {
     // instruction.
     volatile uint8_t _rx_buffer[SERIAL_RX_BUFFER_SIZE];
     volatile uint8_t _tx_buffer[SERIAL_TX_BUFFER_SIZE];
-/* DANGER DANGER DANGER */
-/* ANY CHANGES BETWEEN OTHER SCARY COMMENT AND THIS ONE WILL BREAK SERIAL IF THEY CHANGE RAM USED BY CLASS! */
-/* DANGER DANGER DANGER */
+    /* DANGER DANGER DANGER */
+    /* ANY CHANGES BETWEEN OTHER SCARY COMMENT AND THIS ONE WILL BREAK SERIAL IF THEY CHANGE RAM USED BY CLASS! */
+    /* DANGER DANGER DANGER */
 
   public:
     inline             HardwareSerial(volatile USART_t *hwserial_module, uint8_t *usart_pins, uint8_t mux_count, uint8_t mux_default);
     bool                    pins(uint8_t tx, uint8_t rx);
     bool                    swap(uint8_t mux_level = 1);
-    void                   begin(uint32_t baud) {begin(baud, SERIAL_8N1);}
+    void                   begin(uint32_t baud) {
+      begin(baud, SERIAL_8N1);
+    }
     void                   begin(uint32_t baud, uint16_t options);
     void                     end();
     // printHex!
     void                  printHex(const     uint8_t  b); // in the cpp
-    void                  printHex(const      int8_t  b)              {printHex((uint8_t )      b);           }
-    void                  printHex(const        char  b)              {printHex((uint8_t )      b);           }
+    void                  printHex(const      int8_t  b)              {
+      printHex((uint8_t)      b);
+    }
+    void                  printHex(const        char  b)              {
+      printHex((uint8_t)      b);
+    }
     void                  printHex(const    uint16_t  w, bool s = 0); // in the cpp
-    void                  printHex(const     int16_t  w, bool s = 0)  {printHex((uint16_t)   w, s);           }
-    void                  printHex(const    uint32_t  l, bool s = 0)  {_prtHxdw((uint8_t *) &l, s);           } // this lets all three 4-byte datatypes
-    void                  printHex(const     int32_t  d, bool s = 0)  {_prtHxdw((uint8_t *) &d, s);           } // share the body
-    void                  printHex(const       float  f, bool s = 0)  {_prtHxdw((uint8_t *) &f, s);           }
-    void                  printHex(const      double  f, bool s = 0)  {_prtHxdw((uint8_t *) &f, s);           } // _prtHxdw (Internal printHex for dword, but spelled so it lines up)
+    void                  printHex(const     int16_t  w, bool s = 0)  {
+      printHex((uint16_t)   w, s);
+    }
+    void                  printHex(const    uint32_t  l, bool s = 0)  {
+      _prtHxdw((uint8_t *) &l, s);            // this lets all three 4-byte datatypes
+    }
+    void                  printHex(const     int32_t  d, bool s = 0)  {
+      _prtHxdw((uint8_t *) &d, s);            // share the body
+    }
+    void                  printHex(const       float  f, bool s = 0)  {
+      _prtHxdw((uint8_t *) &f, s);
+    }
+    void                  printHex(const      double  f, bool s = 0)  {
+      _prtHxdw((uint8_t *) &f, s);            // _prtHxdw (Internal printHex for dword, but spelled so it lines up)
+    }
     // printHexln! - like printHex() now with added newlines!
-    void                printHexln(const        char  b)              {printHex((uint8_t  )     b); println();}
-    void                printHexln(const      int8_t  b)              {printHex((uint8_t  )     b); println();}
-    void                printHexln(const     uint8_t  b)              {printHex(                b); println();}
-    void                printHexln(const     int16_t  w, bool s = 0)  {printHex((uint16_t )  w, s); println();}
-    void                printHexln(const    uint16_t  w, bool s = 0)  {printHex(             w, s); println();}
-    void                printHexln(const       float  f, bool s = 0)  {_prtHxdw((uint8_t *) &f, s); println();}
-    void                printHexln(const      double  f, bool s = 0)  {_prtHxdw((uint8_t *) &f, s); println();} // per usual, they all get newline versions.
-    void                printHexln(const     int32_t  d, bool s = 0)  {_prtHxdw((uint8_t *) &d, s); println();} // share the body
-    void                printHexln(const    uint32_t  l, bool s = 0)  {_prtHxdw((uint8_t *) &l, s); println();}
+    void                printHexln(const        char  b)              {
+      printHex((uint8_t)     b);
+      println();
+    }
+    void                printHexln(const      int8_t  b)              {
+      printHex((uint8_t)     b);
+      println();
+    }
+    void                printHexln(const     uint8_t  b)              {
+      printHex(b);
+      println();
+    }
+    void                printHexln(const     int16_t  w, bool s = 0)  {
+      printHex((uint16_t)  w, s);
+      println();
+    }
+    void                printHexln(const    uint16_t  w, bool s = 0)  {
+      printHex(w, s);
+      println();
+    }
+    void                printHexln(const       float  f, bool s = 0)  {
+      _prtHxdw((uint8_t *) &f, s);
+      println();
+    }
+    void                printHexln(const      double  f, bool s = 0)  {
+      _prtHxdw((uint8_t *) &f, s);  // per usual, they all get newline versions.
+      println();
+    }
+    void                printHexln(const     int32_t  d, bool s = 0)  {
+      _prtHxdw((uint8_t *) &d, s);  // share the body
+      println();
+    }
+    void                printHexln(const    uint32_t  l, bool s = 0)  {
+      _prtHxdw((uint8_t *) &l, s);
+      println();
+    }
     // The pointer using versions that take a pointer, gnaw off a byte or two, and return the new pointer to the caller
     // typically called in a loop for a counted number of iterations (frequently, 4, 8, 16, 32 or 64) to dump the entire contents of a peripheral struct.
     // Below 4, the loop and pointer loses to brute force, and though these parts have some xmega lineage, nothing has had enough registers for them to
@@ -278,32 +321,32 @@ class HardwareSerial : public Stream {
     // registers that lord knows who uses for lord knows what. That's one thing that I always disliked about the Microchip appnotes - you might be able
     // to find one embodiment of the design, but what you don't get is guidance as to what the hell they think you're going to use this thing for. For
     // some of the "64b peripherals - heavyweights like TCE, TCA, TCD"
-    uint8_t *             printHex(          uint8_t* p, uint8_t len, char sep = 0            );
-    uint16_t *            printHex(         uint16_t* p, uint8_t len, char sep = 0, bool s = 0);
-    volatile uint8_t *    printHex(volatile  uint8_t* p, uint8_t len, char sep = 0            );
-    volatile uint16_t *   printHex(volatile uint16_t* p, uint8_t len, char sep = 0, bool s = 0);
+    uint8_t              *printHex(uint8_t *p, uint8_t len, char sep = 0);
+    uint16_t             *printHex(uint16_t *p, uint8_t len, char sep = 0, bool s = 0);
+    volatile uint8_t     *printHex(volatile  uint8_t *p, uint8_t len, char sep = 0);
+    volatile uint16_t    *printHex(volatile uint16_t *p, uint8_t len, char sep = 0, bool s = 0);
 
-    uint8_t *           printHexln(          uint8_t* p, uint8_t len, char sep = 0            ) {
-      uint8_t* ret;
-      ret=printHex(p, len, sep);
+    uint8_t            *printHexln(uint8_t *p, uint8_t len, char sep = 0) {
+      uint8_t *ret;
+      ret = printHex(p, len, sep);
       println(); return ret;
     }
-    uint16_t *          printHexln(         uint16_t* p, uint8_t len, char sep = 0, bool s = 0) {
-      uint16_t* ret;  ret=printHex(p, len, sep, s); println(); return ret;
+    uint16_t           *printHexln(uint16_t *p, uint8_t len, char sep = 0, bool s = 0) {
+      uint16_t *ret;  ret = printHex(p, len, sep, s); println(); return ret;
     }
-    volatile uint8_t *  printHexln(volatile  uint8_t* p, uint8_t len, char sep = 0            ) {
-      volatile uint8_t* ret;
-      ret=printHex(p, len, sep);
+    volatile uint8_t   *printHexln(volatile  uint8_t *p, uint8_t len, char sep = 0) {
+      volatile uint8_t *ret;
+      ret = printHex(p, len, sep);
       println();
       return ret;
     }
 
-    volatile uint16_t * printHexln(volatile uint16_t* p, uint8_t len, char sep = 0, bool s = 0) {
-        volatile uint16_t* ret;
-        ret=printHex(p, len, sep, s);
-        println();
-        return ret;
-      }
+    volatile uint16_t *printHexln(volatile uint16_t *p, uint8_t len, char sep = 0, bool s = 0) {
+      volatile uint16_t *ret;
+      ret = printHex(p, len, sep, s);
+      println();
+      return ret;
+    }
 
     virtual int availableForWrite(void);
     virtual int available(void);
@@ -311,10 +354,18 @@ class HardwareSerial : public Stream {
     virtual      int read(void);
     virtual    void flush(void);
     virtual  size_t write(uint8_t ch);
-    inline   size_t write(unsigned long n)  {return write((uint8_t)n);}
-    inline   size_t write(long n)           {return write((uint8_t)n);}
-    inline   size_t write(unsigned int n)   {return write((uint8_t)n);}
-    inline   size_t write(int n)            {return write((uint8_t)n);}
+    inline   size_t write(unsigned long n)  {
+      return write((uint8_t)n);
+    }
+    inline   size_t write(long n)           {
+      return write((uint8_t)n);
+    }
+    inline   size_t write(unsigned int n)   {
+      return write((uint8_t)n);
+    }
+    inline   size_t write(int n)            {
+      return write((uint8_t)n);
+    }
     using Print::write; // pull in write(str) and write(buf, size) from Print
     explicit operator bool() {
       return true;
@@ -329,10 +380,10 @@ class HardwareSerial : public Stream {
       if ((ret & 0x30) == 0x30) {
         _hwserial_module->STATUS = USART_ISFIF_bm;
         #if defined(ERRATA_ISFIF)
-          uint8_t ctrlb _hwserial_module->CTRLB;
-          uint8_t rxoff = ctrlb & (~USART_RXEN_bm);
-          _hwserial_module->CTRLB = rxoff;
-          _hwserial_module->CTRLB = ctrlb;
+        uint8_t ctrlb _hwserial_module->CTRLB;
+        uint8_t rxoff = ctrlb & (~USART_RXEN_bm);
+        _hwserial_module->CTRLB = rxoff;
+        _hwserial_module->CTRLB = ctrlb;
         #endif
       }
       _state &= 0x03; // Clear the errors we just reported.
@@ -343,46 +394,46 @@ class HardwareSerial : public Stream {
 
     // Interrupt handlers - Not intended to be called externally
     #if !(USE_ASM_RXC == 1 && \
-         (SERIAL_RX_BUFFER_SIZE == 256 || SERIAL_RX_BUFFER_SIZE == 128 || SERIAL_RX_BUFFER_SIZE == 64 || SERIAL_RX_BUFFER_SIZE == 32 || SERIAL_RX_BUFFER_SIZE == 16))
-      static void _rx_complete_irq(HardwareSerial& uartClass);
+    (SERIAL_RX_BUFFER_SIZE == 256 || SERIAL_RX_BUFFER_SIZE == 128 || SERIAL_RX_BUFFER_SIZE == 64 || SERIAL_RX_BUFFER_SIZE == 32 || SERIAL_RX_BUFFER_SIZE == 16))
+    static void _rx_complete_irq(HardwareSerial &uartClass);
     #endif
     #if !(USE_ASM_DRE == 1 && \
-         (SERIAL_RX_BUFFER_SIZE == 256 || SERIAL_RX_BUFFER_SIZE == 128 || SERIAL_RX_BUFFER_SIZE == 64 || SERIAL_RX_BUFFER_SIZE == 32 || SERIAL_RX_BUFFER_SIZE == 16) && \
-         (SERIAL_TX_BUFFER_SIZE == 256 || SERIAL_TX_BUFFER_SIZE == 128 || SERIAL_TX_BUFFER_SIZE == 64 || SERIAL_TX_BUFFER_SIZE == 32 || SERIAL_TX_BUFFER_SIZE == 16))
-      static void _tx_data_empty_irq(HardwareSerial& uartClass);
+    (SERIAL_RX_BUFFER_SIZE == 256 || SERIAL_RX_BUFFER_SIZE == 128 || SERIAL_RX_BUFFER_SIZE == 64 || SERIAL_RX_BUFFER_SIZE == 32 || SERIAL_RX_BUFFER_SIZE == 16) && \
+    (SERIAL_TX_BUFFER_SIZE == 256 || SERIAL_TX_BUFFER_SIZE == 128 || SERIAL_TX_BUFFER_SIZE == 64 || SERIAL_TX_BUFFER_SIZE == 32 || SERIAL_TX_BUFFER_SIZE == 16))
+    static void _tx_data_empty_irq(HardwareSerial &uartClass);
     #endif
 
   private:
-    void                  _prtHxdw(uint8_t* p, bool s = 0); // internal, takes a pointer to a 32-bit type of any sort, reads it as bytes and prints.
+    void                  _prtHxdw(uint8_t *p, bool s = 0); // internal, takes a pointer to a 32-bit type of any sort, reads it as bytes and prints.
     void _poll_tx_data_empty(void);
     /* These all concern pin set handling */
-    static void        _set_pins(uint8_t* pinInfo, uint8_t mux_count, uint8_t mux_setting,  uint8_t enmask);
-    static void         _mux_set(uint8_t* pinInfo, uint8_t mux_count, uint8_t mux_code                    );
-    static uint8_t _pins_to_swap(uint8_t* pinInfo, uint8_t mux_count, uint8_t tx_pin,       uint8_t rx_pin);
-    static uint8_t       _getPin(uint8_t* pinInfo, uint8_t mux_count, uint8_t mux_setting,  uint8_t pin);
-   /* _statuscheck() - the static side to getStatus(). Static methods have no concept of which instance they are called from. This gives the optimizer more handholds
-     * As you probably know, the optimizer's hands are pretty tightly bound when working with a normal class method, but it has a much freer hand in static methods.
-     * Return value is:
-     * 0HRaaFPHW
-     * H = Hardware RX buffer overflowed because interrupts were disabled for too long while trying to receive data.
-     * R = Ring buffer suffered an overflow. When you check Serial.available, use a while loop to read in characters until nothing is left in the ring buffer.
-     * aa = Autobaud state:
-     * 00 = Disabled
-     * 01 = SERIAL_AUTOBAUD_ENABLED
-     * 10 = SERIAL_AUTOBAUD_SYNC
-     * 11 = SERIAL_AUTOBAUD_BADSYNC - This is Bad News, bro. Baaaaaad news. You tried to do autobaud, but got something that wasn't a sync, and some parts have an errata
-     *      that results in the receiver disabling itself until you clear this, turn off RXEN, and turn it back on. This ugly kludge is implemented by getStatus, which calls
-     *      this function. Currently only DD parts have this erratum, but I won't trust that until I've seen more recent errata that don't list it (my prediction is anything
-     *      with the SFDEN bug has the ISFIF one too, which would be most or all modern AVRs)
-     * F = SERIAL_FRAME_ERROR - A framing error has occurred since you last called this, indicating mismatched baud settings. See Serial Reference.
-     * P = SERIAL_PARITY_ERROR - A parity error has occurred since you last called this, and the bad character did not make it to the application.
-     *     When using parity mode, but mismatched baud settings, you will get a mixture of gibberish + framing error set, and
-     *     parity errors.
-     * H = SERIAL_HALF_DUPLEX_ENABLED - indicates that half duplex mode is enabled.
-     *
-     * Test for these errors like st = Serial.getStatus(); if (st & SERIAL_FRAME_ERROR) { ... }
-     * For the autobaud ones with 2 bits: if (st & SERIAL_AUTOBAUD_BADSYNC) { // If it wasn't fixed by the core, you'd have to take action. But it is}
-     */
+    static void        _set_pins(uint8_t *pinInfo, uint8_t mux_count, uint8_t mux_setting,  uint8_t enmask);
+    static void         _mux_set(uint8_t *pinInfo, uint8_t mux_count, uint8_t mux_code);
+    static uint8_t _pins_to_swap(uint8_t *pinInfo, uint8_t mux_count, uint8_t tx_pin,       uint8_t rx_pin);
+    static uint8_t       _getPin(uint8_t *pinInfo, uint8_t mux_count, uint8_t mux_setting,  uint8_t pin);
+    /* _statuscheck() - the static side to getStatus(). Static methods have no concept of which instance they are called from. This gives the optimizer more handholds
+      * As you probably know, the optimizer's hands are pretty tightly bound when working with a normal class method, but it has a much freer hand in static methods.
+      * Return value is:
+      * 0HRaaFPHW
+      * H = Hardware RX buffer overflowed because interrupts were disabled for too long while trying to receive data.
+      * R = Ring buffer suffered an overflow. When you check Serial.available, use a while loop to read in characters until nothing is left in the ring buffer.
+      * aa = Autobaud state:
+      * 00 = Disabled
+      * 01 = SERIAL_AUTOBAUD_ENABLED
+      * 10 = SERIAL_AUTOBAUD_SYNC
+      * 11 = SERIAL_AUTOBAUD_BADSYNC - This is Bad News, bro. Baaaaaad news. You tried to do autobaud, but got something that wasn't a sync, and some parts have an errata
+      *      that results in the receiver disabling itself until you clear this, turn off RXEN, and turn it back on. This ugly kludge is implemented by getStatus, which calls
+      *      this function. Currently only DD parts have this erratum, but I won't trust that until I've seen more recent errata that don't list it (my prediction is anything
+      *      with the SFDEN bug has the ISFIF one too, which would be most or all modern AVRs)
+      * F = SERIAL_FRAME_ERROR - A framing error has occurred since you last called this, indicating mismatched baud settings. See Serial Reference.
+      * P = SERIAL_PARITY_ERROR - A parity error has occurred since you last called this, and the bad character did not make it to the application.
+      *     When using parity mode, but mismatched baud settings, you will get a mixture of gibberish + framing error set, and
+      *     parity errors.
+      * H = SERIAL_HALF_DUPLEX_ENABLED - indicates that half duplex mode is enabled.
+      *
+      * Test for these errors like st = Serial.getStatus(); if (st & SERIAL_FRAME_ERROR) { ... }
+      * For the autobaud ones with 2 bits: if (st & SERIAL_AUTOBAUD_BADSYNC) { // If it wasn't fixed by the core, you'd have to take action. But it is}
+      */
     static uint8_t _statuscheck(uint8_t ctrlb, uint8_t status, uint8_t state) {
       uint8_t ret = state;
       // We have now: |HW OVF| RING OVF|_____|_______|FrameError|ParityError|HalfDuplex|Written|
@@ -399,7 +450,7 @@ class HardwareSerial : public Stream {
       }
       return ret;
     }
-  };
+};
 
 #if defined(USART0)
   extern HardwareSerial Serial0;

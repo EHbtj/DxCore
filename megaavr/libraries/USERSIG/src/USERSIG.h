@@ -330,23 +330,23 @@ struct USERSIGClass {
   }
 
   #if !defined(NVMCTRL_ERROR_gm)
-    uint8_t getStatus() {
-      return NVMCTRL.STATUS;
-    }
+  uint8_t getStatus() {
+    return NVMCTRL.STATUS;
+  }
   #else
-    uint8_t getStatus() {
-      uint8_t retval = NVMCTRL.STATUS;
-      if (retval & NVMCTRL_ERROR_gm) {
-        NVMCTRL.STATUS = 0; //Safe = all bits are either read only, or are errors that can be cleared like this.
-      }
-      retval |= (NVMCTRL.CTRLB & 0x08);
-      #if defined(NVMCTRL_CTRLC)
-        if (NVMCTRL.CTRLC & 0x01) {
-          retval |= 0x04;
-        }
-      #endif
-      return retval;
+  uint8_t getStatus() {
+    uint8_t retval = NVMCTRL.STATUS;
+    if (retval & NVMCTRL_ERROR_gm) {
+      NVMCTRL.STATUS = 0; //Safe = all bits are either read only, or are errors that can be cleared like this.
     }
+    retval |= (NVMCTRL.CTRLB & 0x08);
+    #if defined(NVMCTRL_CTRLC)
+    if (NVMCTRL.CTRLC & 0x01) {
+      retval |= 0x04;
+    }
+    #endif
+    return retval;
+  }
   #endif
 
   // Standards require this to be the item after the last valid entry. The returned pointer is invalid.

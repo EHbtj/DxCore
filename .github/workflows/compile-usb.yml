@@ -10,6 +10,7 @@ on:
       - "megaavr/tools/tests/**"
       - "megaavr/extras/ci/**"
       - "megaavr/libraries/DxCore/examples/USB/**"
+      - ".github/actions/setup-usb-build/**"
       - ".github/workflows/compile-usb.yml"
   push:
     paths:
@@ -20,56 +21,50 @@ on:
       - "megaavr/tools/tests/**"
       - "megaavr/extras/ci/**"
       - "megaavr/libraries/DxCore/examples/USB/**"
+      - ".github/actions/setup-usb-build/**"
       - ".github/workflows/compile-usb.yml"
   workflow_dispatch:
+
+env:
+  ARDUINO_DIRECTORIES_USER: ${{ github.workspace }}/.usb-ci/sketchbook
+  ARDUINO_DIRECTORIES_DATA: ${{ github.workspace }}/.usb-ci/data
+  ARDUINO_DIRECTORIES_DOWNLOADS: ${{ github.workspace }}/.usb-ci/downloads
 
 jobs:
   usb:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.x"
+          python-version: "3.12"
       - name: Uploader and distributed asset tests
         run: python -m unittest discover -s megaavr/tools/tests -v
+      - uses: ./.github/actions/setup-usb-build
       - name: Compile native USB examples and API contract
-        uses: arduino/compile-sketches@main
-        with:
-          cli-version: "1.5.1"
-          fqbn: DxCore:megaavr:avrduusb
-          sketch-paths: |
-            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
-            - megaavr/libraries/DxCore/examples/USB/SerialUSBAndUART
-            - megaavr/extras/ci/test-sketch/usb/UARTRegression
-            - megaavr/extras/ci/test-sketch/usb/StreamAPI
-            - megaavr/extras/ci/test-sketch/all/dummysketch
-          platforms: |
-            - source-url: http://drazzy.com/package_drazzy.com_index.json
-              name: DxCore:megaavr
-            - source-path: megaavr
-              name: DxCore:megaavr
-          libraries: |
-            -
-          enable-deltas-report: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: >-
+          python megaavr/extras/ci/compile_usb.py
+          --fqbn DxCoreUSB:megaavr:avrduusb
+          --build-root "${{ runner.temp }}/usb-default"
+          megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+          megaavr/libraries/DxCore/examples/USB/SerialUSBAndUART
+          megaavr/extras/ci/test-sketch/usb/UARTRegression
+          megaavr/extras/ci/test-sketch/usb/StreamAPI
+          megaavr/extras/ci/test-sketch/all/dummysketch
       - name: Compile configurable clock, watchdog and library modes
-        uses: arduino/compile-sketches@main
-        with:
-          cli-version: "1.5.1"
-          fqbn: DxCore:megaavr:avrduusb:clock=24internal,usbWDTtimeout=63msec,usbWDTwindow=125msec,millis=disabled,printf=full,attach=manual,wiremode=mands,flmap=unlocked
-          sketch-paths: |
-            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
-            - megaavr/extras/ci/test-sketch/usb/StreamAPI
-          platforms: |
-            - source-url: http://drazzy.com/package_drazzy.com_index.json
-              name: DxCore:megaavr
-            - source-path: megaavr
-              name: DxCore:megaavr
-          libraries: |
-            -
-          enable-deltas-report: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: >-
+          python megaavr/extras/ci/compile_usb.py
+          --fqbn DxCoreUSB:megaavr:avrduusb:clock=24internal,usbWDTtimeout=63msec,usbWDTwindow=125msec,millis=disabled,printf=full,attach=manual,wiremode=mands,flmap=unlocked
+          --build-root "${{ runner.temp }}/usb-options"
+          megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+          megaavr/extras/ci/test-sketch/usb/StreamAPI
+      - name: Compile regulator example on AVR128DB64
+        run: >-
+          arduino-cli compile
+          --fqbn DxCoreUSB:megaavr:avrdb:chip=avr128db64
+          megaavr/libraries/AzduinoMAX38903/examples/MAX38903_MVIO_demo
 
   standalone:
     runs-on: windows-latest
@@ -77,40 +72,20 @@ jobs:
       fail-fast: false
       matrix:
         mcu: [avr64du32, avr32du32, avr64du28, avr32du28]
+        power: [regulator, external]
     steps:
-      - uses: actions/checkout@v4
-      - name: Compile standalone with internal USB regulator
-        uses: arduino/compile-sketches@main
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          cli-version: "1.5.1"
-          fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=regulator
-          sketch-paths: |
-            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
-            - megaavr/extras/ci/test-sketch/usb/UARTRegression
-            - megaavr/extras/ci/test-sketch/usb/StreamAPI
-          platforms: |
-            - source-url: http://drazzy.com/package_drazzy.com_index.json
-              name: DxCore:megaavr
-            - source-path: megaavr
-              name: DxCore:megaavr
-          libraries: |
-            -
-          enable-deltas-report: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Compile standalone with external 3.3 V VUSB
-        uses: arduino/compile-sketches@main
-        with:
-          cli-version: "1.5.1"
-          fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=external,clock=16internal,usbWDTtimeout=8seconds,usbWDTwindow=1second,millis=disabled,printf=full,flmap=locksection0
-          sketch-paths: |
-            - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
-            - megaavr/extras/ci/test-sketch/usb/StreamAPI
-          platforms: |
-            - source-url: http://drazzy.com/package_drazzy.com_index.json
-              name: DxCore:megaavr
-            - source-path: megaavr
-              name: DxCore:megaavr
-          libraries: |
-            -
-          enable-deltas-report: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          python-version: "3.12"
+      - uses: ./.github/actions/setup-usb-build
+      - name: Compile standalone USB examples and API contract
+        shell: pwsh
+        run: >-
+          python megaavr/extras/ci/compile_usb.py
+          --fqbn DxCoreUSB:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=${{ matrix.power }},clock=16internal,usbWDTtimeout=8seconds,usbWDTwindow=1second,millis=disabled,printf=full,flmap=locksection0
+          --mcu ${{ matrix.mcu }}
+          --build-root "${{ runner.temp }}/standalone-usb"
+          megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+          megaavr/extras/ci/test-sketch/usb/UARTRegression
+          megaavr/extras/ci/test-sketch/usb/StreamAPI

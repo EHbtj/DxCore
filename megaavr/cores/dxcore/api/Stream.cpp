@@ -37,50 +37,50 @@ __attribute__ ((inline)) void wait_250_clocks() {
 
 int Stream::timedRead() {
   #if !defined(MILLIS_USE_TIMERNONE)
-    int c;
-    unsigned long startMillis = millis(); //formerly, this was a member variable! Eating 4 bytes of ram for no bloody reason.
-    do {
-      c = read();
-      if (c >= 0) {
-        return c;
-      }
-    } while (millis() - startMillis < _timeout);
-    return -1;     // -1 indicates timeout
-  #else
-    int c;
-    for (uint32_t i = 0; i < _timeout; i++) {
-      c = read();
-      if (c >= 0) {
-        return c;
-      }
-      _delay_us(980); //not 1000, b/c compensation for the rest
+  int c;
+  unsigned long startMillis = millis(); //formerly, this was a member variable! Eating 4 bytes of ram for no bloody reason.
+  do {
+    c = read();
+    if (c >= 0) {
+      return c;
     }
-    return -1;     // -1 indicates timeout
+  } while (millis() - startMillis < _timeout);
+  return -1;     // -1 indicates timeout
+  #else
+  int c;
+  for (uint32_t i = 0; i < _timeout; i++) {
+    c = read();
+    if (c >= 0) {
+      return c;
+    }
+    _delay_us(980); //not 1000, b/c compensation for the rest
+  }
+  return -1;     // -1 indicates timeout
   #endif
 }
 
 // private method to peek stream with timeout
 int Stream::timedPeek() {
   #if !defined(MILLIS_USE_TIMERNONE)
-    int c;
-    unsigned long startMillis = millis();
-    do {
-      c = peek();
-      if (c >= 0) {
-        return c;
-      }
-    } while (millis() - startMillis < _timeout);
-    return -1;     // -1 indicates timeout
-  #else
-    int c;
-    for (uint32_t i = 0; i < _timeout; i++) {
-      c = read();
-      if (c >= 0) {
-        return c;
-      }
-      _delay_us(980); //not 1000, b/c compensation for the rest
+  int c;
+  unsigned long startMillis = millis();
+  do {
+    c = peek();
+    if (c >= 0) {
+      return c;
     }
-    return -1;     // -1 indicates timeout
+  } while (millis() - startMillis < _timeout);
+  return -1;     // -1 indicates timeout
+  #else
+  int c;
+  for (uint32_t i = 0; i < _timeout; i++) {
+    c = read();
+    if (c >= 0) {
+      return c;
+    }
+    _delay_us(980); //not 1000, b/c compensation for the rest
+  }
+  return -1;     // -1 indicates timeout
   #endif
 }
 

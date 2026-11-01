@@ -105,7 +105,7 @@ To be clear, this is what those last two options can be:
 | MVIO_SELECT_REF | other  | Select and set the DAC reference to an internal ref as above, and ignore the inappropriate value passed as dacref. |
 | 0               | -1     | I've already set the DAC reference to an internal reference (if not, returns MVIO_IMPOSSIBLE_CFG), turn on the DAC and opamp to buffer it and set it up. |
 | 0               | >5500  | `MVIO_VOLTAGE_TOO_HIGH` - hopefully this was a mistake, and you aren't actually supplying a reference voltage that high, which would exceed the specifications of the chip. |
-| 0               | 1750 > dacref > 0   | `MVIO_REF_TOO_LOW | MVIO_UNDERVOLTAGE` - that reference could never be used to derive voltages that could power MVIO, it's too low. |
+| 0               | 1750 > dacref > 0   | `MVIO_REF_TOO_LOW \| MVIO_UNDERVOLTAGE` - that reference could never be used to derive voltages that could power MVIO, it's too low. |
 | 0               | voltage > dacref > -1 | External reference selected, but lower than the requested voltage, `MVIO_REF_TOO_LOW` |
 | MVIO_SELECT_REF | -1, voltage > 4v | `MVIO_NO_VALID_REF` - there are no internal references higher than 4.096V, so there is no reference that will work for you. |
 

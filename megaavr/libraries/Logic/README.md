@@ -41,7 +41,7 @@ The DU has only PC3 out of the entire port C left, the rest having been given ov
 Notice how logic block 2 and 3 on 14/20 pin DD and logic block 5 on 48-pin parts have no dedicated pins. If you are not using pin input or output, use these logic blocks to conserve the more useful ones when not precluded by other considerations.
 
 ### The EVSYS changed between DD and EA
-EVSYS is closely associated with the CCL, and the change is significant enough that you do need to take account of it. If you're using the event system, be sure to read the Event library documentation and/or the datasheet. Two high visibility event system features got big changes. See the [Event](../Event/Readme.md) library for more detail. Now finally the dream is achieved - all event channels are created equal now, which is a terrific improvement in developer experience.
+EVSYS is closely associated with the CCL, and the change is significant enough that you do need to take account of it. If you're using the event system, be sure to read the Event library documentation and/or the datasheet. Two high visibility event system features got big changes. See the [Event](../Event/README.md) library for more detail. Now finally the dream is achieved - all event channels are created equal now, which is a terrific improvement in developer experience.
 
 
 ## Pin availability and Quick Reference (tinyAVR)

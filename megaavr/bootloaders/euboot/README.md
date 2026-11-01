@@ -44,11 +44,11 @@ Also, the stream is block-oriented, so there is almost no slowdown in either rea
 
 To do this, you need the following environment:
 
-#### [MultiX Zinnia Product SDK [modernAVR] @0.3.0+](https://github.com/askn37/multix-zinnia-sdk-modernAVR)
+### [MultiX Zinnia Product SDK [modernAVR] @0.3.0+](https://github.com/askn37/multix-zinnia-sdk-modernAVR)
 
 Bare metal development SDK that can be easily installed with the Arduino IDE/CLI board manager. It has various macros that make AVR-LIBC easier to use, and allows you to write low-level code with a similar feel to Arduino-API. AVRDUDE 8.0+ is also installed at the same time.
 
-#### [Arduino-CLI @1.0.3+](https://arduino.github.io/arduino-cli/1.0/installation/)
+### [Arduino-CLI @1.0.3+](https://arduino.github.io/arduino-cli/1.0/installation/)
 
 This is required if you want to build the firmware using the included Makefile.
 It is possible to output binary file using only the modernAVR SDK without using this, but the menu settings will become more complicated.
@@ -196,7 +196,7 @@ The first address of the USB bootloader starts at `PROGMEM_START` in the `PROGME
 |-|-|-|
 |AVR_DA/DB/DD/DU/EA/EB|PROGMEM_START + 2 bytes|0x95089361|
 
-> [!TIP] 
+> [!TIP]
 > `(pgm_read_dword(PROGMEM_START + 2) == 0x95089361L`
 
 |Offset|HWV=52|OP code|

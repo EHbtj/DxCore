@@ -9,7 +9,7 @@
  * IT'S WAVEFORM OUTPUT with the CCL in order to something, including PWM */
 
 #ifndef Device_Timer_Pins_h
-  #define Device_Timer_Pins_h
+#define Device_Timer_Pins_h
 
 
 
@@ -162,10 +162,10 @@
     #define PIN_TCD0_WOD_DEFAULT        PIN_PA7
   #endif
   #if defined(TCB0)
-      #define PIN_TCB0_WO_DEFAULT       PIN_PA2
+    #define PIN_TCB0_WO_DEFAULT       PIN_PA2
   #endif
   #if defined(TCB1)
-      #define PIN_TCB1_WO_DEFAULT       PIN_PA3
+    #define PIN_TCB1_WO_DEFAULT       PIN_PA3
   #endif
   #if defined(TCE0)
     #define PIN_TCE0_WO2_PORTA          PIN_PA2
@@ -182,8 +182,8 @@
     #define PIN_TCE0_WO5_PORTA2         PIN_PA7
   #endif
   #if defined(TCF0)
-      #define PIN_TCF0_WO0_ALT1         PIN_PA6
-      #define PIN_TCF0_WO1_ALT1         PIN_PA7
+    #define PIN_TCF0_WO0_ALT1         PIN_PA6
+    #define PIN_TCF0_WO1_ALT1         PIN_PA7
   #endif
 #else
   #if defined(TCA0)
@@ -208,10 +208,10 @@
     #define PIN_TCD0_WOD_DEFAULT        NOT_A_PIN
   #endif
   #if defined(TCB0)
-      #define PIN_TCB0_WO_DEFAULT       NOT_A_PIN
+    #define PIN_TCB0_WO_DEFAULT       NOT_A_PIN
   #endif
   #if defined(TCB1)
-      #define PIN_TCB1_WO_DEFAULT       NOT_A_PIN
+    #define PIN_TCB1_WO_DEFAULT       NOT_A_PIN
   #endif
   #if defined(TCE0)
     #define PIN_TCE0_WO2_PORTA          NOT_A_PIN
@@ -228,8 +228,8 @@
     #define PIN_TCE0_WO5_PORTA2         NOT_A_PIN
   #endif
   #if defined(TCF0)
-      #define PIN_TCF0_WO0_ALT1         NOT_A_PIN
-      #define PIN_TCF0_WO1_ALT1         NOT_A_PIN
+    #define PIN_TCF0_WO0_ALT1         NOT_A_PIN
+    #define PIN_TCF0_WO1_ALT1         NOT_A_PIN
   #endif
 #endif
 

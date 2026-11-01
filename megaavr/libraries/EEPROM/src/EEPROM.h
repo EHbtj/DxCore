@@ -70,7 +70,7 @@ struct EERef {
   EERef &operator = (const EERef &ref) {
     return *this = *ref;
   }
-//
+  //
 
 
   EERef &operator = (uint8_t in)       {
@@ -90,15 +90,15 @@ struct EERef {
       "ldi %0, 0x9D"      "\n\t" // CCP signature loaded
       "ldi r18, 0x03"     "\n\t" // Reuse r18 to hold the command.
       "out 0x34, %0"      "\n\t" // protected write begun
-//    "st Z, r1"          "\n\t" // Write NO_CMD TO THE NVMCTRL
-//    "out 0x34, %0"      "\n\t" //
+      //    "st Z, r1"          "\n\t" // Write NO_CMD TO THE NVMCTRL
+      //    "out 0x34, %0"      "\n\t" //
       "st Z, r18"         "\n\t" // write the page erase-write command to nvmctrl.ctrla
       "out 0x3f, r0"      "\n"   // restore SREG
       :"+d"(in)           // take the value we are writing in any upper register as read/write,
       : "x"(adr)          // and the address (not the index) in X
       : "r30", "r31", "r18", "r0");
     return *this;
-  #elif defined(__AVR_EA__) || defined(__AVR_EB__)/* Works like the tinyAVR except needs different command value. Appears to have the same risk. */
+    #elif defined(__AVR_EA__) || defined(__AVR_EB__)/* Works like the tinyAVR except needs different command value. Appears to have the same risk. */
     uint16_t adr = (uint16_t)MAPPED_EEPROM_START + (index & EEPROM_INDEX_MASK);
     __asm__ __volatile__(
       "ldi r30, 0x00"     "\n\t" // point the Z register at NVMCTRL.
@@ -121,7 +121,7 @@ struct EERef {
       : "x"(adr)          // and the address (not the index) in X
       : "r30", "r31", "r18", "r0");
     return *this;
-  #else /* DA/DB/DD/DU has a 1 clock window during which millis could lose a couple of milliseconds. No ASM is required to get acceptable results. */
+    #else /* DA/DB/DD/DU has a 1 clock window during which millis could lose a couple of milliseconds. No ASM is required to get acceptable results. */
     uint8_t oldSREG = SREG;
     while (NVMCTRL.STATUS & NVMCTRL_EEBUSY_bm);
     // check at start - not end. Makes writing single bytes faster
@@ -139,7 +139,7 @@ struct EERef {
 
     SREG = oldSREG; // restore SREG and interrupts
     return *this;
-  #endif
+    #endif
   }
   EERef &operator += (uint8_t in)     {
     return *this = **this + in;
@@ -264,26 +264,26 @@ struct EEPROMClass {
     EERef(idx).update(val);
   }
   #if !defined(NVMCTRL_ERROR_gm)
-    uint8_t getStatus() {
-      return NVMCTRL.STATUS;
-    }
+  uint8_t getStatus() {
+    return NVMCTRL.STATUS;
+  }
   #else
-    uint8_t getStatus() {
-      uint8_t retval = NVMCTRL.STATUS;
-      if (retval & NVMCTRL_ERROR_gm) {
-        NVMCTRL.STATUS = 0; //Safe = all bits are either read only, or are errors that can be cleared like this.
-      }
-      if (retval & 0x10) {
-        _PROTECTED_WRITE_SPM(NVMCTRL.CTRLA,0x00);
-      }
-      retval |= (NVMCTRL.CTRLB & 0x08);
-      #if defined(NVMCTRL_CTRLC)
-        if (NVMCTRL.CTRLC & 0x01) {
-          retval |= 0x04;
-        }
-      #endif
-      return retval;
+  uint8_t getStatus() {
+    uint8_t retval = NVMCTRL.STATUS;
+    if (retval & NVMCTRL_ERROR_gm) {
+      NVMCTRL.STATUS = 0; //Safe = all bits are either read only, or are errors that can be cleared like this.
     }
+    if (retval & 0x10) {
+      _PROTECTED_WRITE_SPM(NVMCTRL.CTRLA, 0x00);
+    }
+    retval |= (NVMCTRL.CTRLB & 0x08);
+    #if defined(NVMCTRL_CTRLC)
+    if (NVMCTRL.CTRLC & 0x01) {
+      retval |= 0x04;
+    }
+    #endif
+    return retval;
+  }
   #endif
 
   // STL and C++11 iteration capability.

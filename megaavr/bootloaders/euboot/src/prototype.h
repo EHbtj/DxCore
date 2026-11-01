@@ -82,7 +82,7 @@
 #define USB_EP_SIZE_gc(x)  ((x <= 8 ) ? USB_BUFSIZE_DEFAULT_BUF8_gc :\
                             (x <= 16) ? USB_BUFSIZE_DEFAULT_BUF16_gc:\
                             (x <= 32) ? USB_BUFSIZE_DEFAULT_BUF32_gc:\
-                                        USB_BUFSIZE_DEFAULT_BUF64_gc)
+                            USB_BUFSIZE_DEFAULT_BUF64_gc)
 #define USB_EP_ID_SWAP(x) __builtin_avr_swap(x)
 #define USB_EP(EPFIFO) (*(USB_EP_t *)(((uint16_t)&EP_TABLE.EP) + (EPFIFO)))
 #define USB_EP_STATUS_CLR(EPFIFO) _SFR_MEM8(&USB0_STATUS0_OUTCLR + ((EPFIFO) >> 2))
@@ -103,10 +103,10 @@
 #define EP_DPO  USB_EP(USB_EP_DPO)
 
 #define GPCONF GPR_GPR2
-  #define GPCONF_USB_bp   0         /* USB interface is active */
-  #define GPCONF_USB_bm   (1 << 0)
-  #define GPCONF_FAIL_bp  7         /* Enable WDT Timeout */
-  #define GPCONF_FAIL_bm  (1 << 7)
+#define GPCONF_USB_bp   0         /* USB interface is active */
+#define GPCONF_USB_bm   (1 << 0)
+#define GPCONF_FAIL_bp  7         /* Enable WDT Timeout */
+#define GPCONF_FAIL_bm  (1 << 7)
 
 /*
  * Global struct
@@ -242,7 +242,7 @@ typedef struct {
  */
 
 extern "C" {
-  namespace /* NAMELESS */ {
+  namespace { /* NAMELESS */
 
     /* SYSTEM */
     extern uint8_t _led_bits;
@@ -270,36 +270,36 @@ extern "C" {
 
   } /* NAMELESS */;
 
-  extern void nvm_cmd (uint8_t _nvm_cmd);
+  extern void nvm_cmd(uint8_t _nvm_cmd);
 };
 
 namespace JTAG {
-  bool dap_command_check (void);
-  void jtag_scope_branch (void);
+  bool dap_command_check(void);
+  void jtag_scope_branch(void);
 };
 
 namespace NVM::V4 {
-  size_t jtag_scope_updi (void);
+  size_t jtag_scope_updi(void);
 };
 
 namespace SYS {
-  void reboot (void);
-  uint16_t get_vdd (void);
-  void delay_55us (void);
-  void delay_100us (void);
-  void delay_800us (void);
-  void delay_2500us (void);
-  void delay_125ms (void);
+  void reboot(void);
+  uint16_t get_vdd(void);
+  void delay_55us(void);
+  void delay_100us(void);
+  void delay_800us(void);
+  void delay_2500us(void);
+  void delay_125ms(void);
 };
 
 namespace USB {
-  bool is_ep_setup (void);
-  bool is_not_dap (void);
-  void ep_dpi_pending (void);
-  void complete_dap_out (void);
-  void setup_device (bool _force = false);
-  void handling_bus_events (void);
-  void handling_control_transactions (void);
+  bool is_ep_setup(void);
+  bool is_not_dap(void);
+  void ep_dpi_pending(void);
+  void complete_dap_out(void);
+  void setup_device(bool _force = false);
+  void handling_bus_events(void);
+  void handling_control_transactions(void);
 };
 
 // end of header

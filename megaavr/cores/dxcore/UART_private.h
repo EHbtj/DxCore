@@ -17,7 +17,7 @@
 // Constructor
 // no need to set the other variables to zero, init script already does that. Saves some flash
 HardwareSerial::HardwareSerial(volatile USART_t *hwserial_module, uint8_t *usart_pins, uint8_t mux_count, uint8_t mux_default) :
-    _hwserial_module(hwserial_module), _usart_pins(usart_pins), _mux_count(mux_count), _pin_set(mux_default) {
+  _hwserial_module(hwserial_module), _usart_pins(usart_pins), _mux_count(mux_count), _pin_set(mux_default) {
 }
 
 #endif  // whole file

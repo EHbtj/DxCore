@@ -17,9 +17,15 @@ namespace USB_NAMESPACE {
   static uint8_t pending_address;
   static uint8_t boot_ticks;
 
-  void bus_attach() { USB0_CTRLB |= USB_ATTACH_bm; }
-  void bus_detach() { USB0_CTRLB &= ~USB_ATTACH_bm; }
-  void bus_resume() { USB0_CTRLB |= USB_URESUME_bm; }
+  void bus_attach() {
+    USB0_CTRLB |= USB_ATTACH_bm;
+  }
+  void bus_detach() {
+    USB0_CTRLB &= ~USB_ATTACH_bm;
+  }
+  void bus_resume() {
+    USB0_CTRLB |= USB_URESUME_bm;
+  }
 
   void bus_reset() {
     USB0_CTRLA = 0;
@@ -91,17 +97,25 @@ namespace USB_NAMESPACE {
         case USB_REQ_SetConfiguration:
           accepted = request.bmRequestType == 0 && !request.wIndex &&
                      !request.wLength && request.wValue <= 1;
-          if (accepted) accepted = cb_set_configuration(request.wValue);
+          if (accepted) {
+            accepted = cb_set_configuration(request.wValue);
+          }
           break;
         case USB_REQ_GetStatus:
           accepted = (request.bmRequestType & 0x80) && !request.wValue && request.wLength == 2;
           data[0] = data[1] = 0;
-          if (recipient == USB_RECIPIENT_DEVICE_gc) accepted &= request.wIndex == 0;
-          else if (recipient == USB_RECIPIENT_INTERFACE_gc) accepted &= valid_interface(request.wIndex);
-          else if (recipient == USB_RECIPIENT_ENDPOINT_gc) {
+          if (recipient == USB_RECIPIENT_DEVICE_gc) {
+            accepted &= request.wIndex == 0;
+          } else if (recipient == USB_RECIPIENT_INTERFACE_gc) {
+            accepted &= valid_interface(request.wIndex);
+          } else if (recipient == USB_RECIPIENT_ENDPOINT_gc) {
             accepted &= valid_endpoint(request.wIndex);
-            if (accepted) data[0] = !!(USB_EP(endpoint_id(request.wIndex)).CTRL & USB_DOSTALL_bm);
-          } else accepted = false;
+            if (accepted) {
+              data[0] = !!(USB_EP(endpoint_id(request.wIndex)).CTRL & USB_DOSTALL_bm);
+            }
+          } else {
+            accepted = false;
+          }
           size = 2;
           break;
         case USB_REQ_GetInterface:
@@ -129,7 +143,9 @@ namespace USB_NAMESPACE {
               USB_EP_STATUS_CLR(id) = (uint8_t)~USB_BUSNAK_bm; // Reset to DATA0.
               USB_EP(id).CTRL &= ~USB_DOSTALL_bm;
               USB_EP(id).CNT = 0;
-              if (id == USB_EP_BULK_IN) USBSTATE.SENDCNT = 0;
+              if (id == USB_EP_BULK_IN) {
+                USBSTATE.SENDCNT = 0;
+              }
               if (id == USB_EP_BULK_OUT) {
                 USBSTATE.RECVCNT = 0;
                 loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
@@ -159,18 +175,19 @@ namespace USB_NAMESPACE {
           memcpy(data, &USBSTATE.LineEncoding, size);
           break;
         case CDC_REQTYPE_SetLineState: {
-          accepted = !request.wLength;
-          uint8_t previous = USBSTATE.bLineState;
-          USBSTATE.bLineState = request.wValue & 3;
-          #if defined(USING_EUBOOT)
+            accepted = !request.wLength;
+            uint8_t previous = USBSTATE.bLineState;
+            USBSTATE.bLineState = request.wValue & 3;
+            #if defined(USING_EUBOOT)
             if (accepted && (previous & 1) && !(request.wValue & 1) &&
-                USBSTATE.LineEncoding.dwDTERate == 1200)
+                USBSTATE.LineEncoding.dwDTERate == 1200) {
               phase = ControlPhase::BootStatus;
-          #else
+            }
+            #else
             (void)previous;
-          #endif
-          break;
-        }
+            #endif
+            break;
+          }
         case CDC_REQTYPE_SendBreak:
           accepted = !request.wLength;
           USBSTATE.SerialState.bBreak = request.wValue != 0;
@@ -179,10 +196,14 @@ namespace USB_NAMESPACE {
         default:
           accepted = false;
       }
-    } else accepted = false;
+    } else {
+      accepted = false;
+    }
 
     if (accepted) {
-      if (size > request.wLength) size = request.wLength;
+      if (size > request.wLength) {
+        size = request.wLength;
+      }
       control_in(size);
     } else {
       phase = ControlPhase::Idle;
@@ -221,25 +242,34 @@ namespace USB_NAMESPACE {
 
   void tick_bootloader() {
     #if defined(USING_EUBOOT)
-      if (boot_ticks && --boot_ticks == 0) {
-        bus_detach();
-        USB0_CTRLA = 0;
-        cli();
-        // Match euboot's SRAM-top marker. No function call after this store.
-        *(volatile uint16_t*)(RAMEND - 1) = 0;
-        _PROTECTED_WRITE(RSTCTRL_SWRR, 1);
-        __builtin_unreachable();
-      }
+    if (boot_ticks && --boot_ticks == 0) {
+      bus_detach();
+      USB0_CTRLA = 0;
+      cli();
+      // Match euboot's SRAM-top marker. No function call after this store.
+      *(volatile uint16_t *)(RAMEND - 1) = 0;
+      _PROTECTED_WRITE(RSTCTRL_SWRR, 1);
+      __builtin_unreachable();
+    }
     #endif
   }
 
   void handling_bus_events() {
     uint8_t flags = USB0_INTFLAGSA;
     USB0_INTFLAGSA = flags; // W1C: acknowledge exactly the sampled flags.
-    if (flags & USB_RESET_bm) { bus_reset(); return; }
-    if (flags & USB_SUSPEND_bm) bus_suspend();
-    if (flags & USB_RESUME_bm) bus_wake();
-    if (flags & USB_SOF_bm) cb_event_class_sof();
+    if (flags & USB_RESET_bm) {
+      bus_reset();
+      return;
+    }
+    if (flags & USB_SUSPEND_bm) {
+      bus_suspend();
+    }
+    if (flags & USB_RESUME_bm) {
+      bus_wake();
+    }
+    if (flags & USB_SOF_bm) {
+      cb_event_class_sof();
+    }
   }
 
   void handling_transaction_events() {

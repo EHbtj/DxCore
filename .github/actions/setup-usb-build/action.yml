@@ -1,0 +1,19 @@
+name: Set up AVR DU USB build
+description: Install Arduino CLI and the AVR toolchain, then use the checked-out USB platform.
+runs:
+  using: composite
+  steps:
+    - uses: arduino/setup-arduino-cli@v2
+      with:
+        version: "1.5.1"
+    - name: Install toolchain and local platform
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        arduino-cli core update-index --additional-urls http://drazzy.com/package_drazzy.com_index.json
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        arduino-cli core install DxCore:megaavr --additional-urls http://drazzy.com/package_drazzy.com_index.json
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $platform = Join-Path $env:ARDUINO_DIRECTORIES_USER 'hardware/DxCoreUSB/megaavr'
+        New-Item -ItemType Directory -Force -Path $platform | Out-Null
+        Copy-Item -Path "$env:GITHUB_WORKSPACE/megaavr/*" -Destination $platform -Recurse -Force

@@ -3,7 +3,7 @@ tinyNeoPixel is a tweaked version of adafruitNeoPixel, supporting more clock spe
 * [Summary and changes specific to tinyNeoPixel_Static](https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/tinyNeoPixel.md)
 * [Full class reference from Adafruit](https://adafruit.github.io/Adafruit_NeoPixel/html/class_adafruit___neo_pixel.html)
 
-In the event that a function listed in that class reference is not defined in tinyNeoPixel, or in the event of differences in behavior between adafruitNeoPixel and tinyNeoPixel (except as noted in the first documentation link above), that is a bug, and is likely unknown to the maintainer of megaTinyCore - please report it via github issue (preferred) or by emailing [SpenceKonde@gmail.com](SpenceKonde@gmail.com)
+In the event that a function listed in that class reference is not defined in tinyNeoPixel, or in the event of differences in behavior between adafruitNeoPixel and tinyNeoPixel (except as noted in the first documentation link above), that is a bug, and is likely unknown to the maintainer of megaTinyCore - please report it via github issue (preferred) or by emailing [SpenceKonde@gmail.com](mailto:SpenceKonde@gmail.com)
 
 ## Licensing
 **tinyNeoPixel is LGPL 3 not LGPL 2.1**

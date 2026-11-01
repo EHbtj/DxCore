@@ -9,6 +9,8 @@ void loop() {
   while (SerialUSB.available() && SerialUSB.availableForWrite()) {
     int value = SerialUSB.read();
     SerialUSB.write((uint8_t)value);
-    if (value == '\n') digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    if (value == '\n') {
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    }
   }
 }

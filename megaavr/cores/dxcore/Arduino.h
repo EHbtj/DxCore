@@ -147,11 +147,10 @@ have ports shoulod have those Px constants defined as NOT_A_PORT. I think that w
 
  */
 
-typedef enum _MILLIS_RTC_INT_enum
-{
-    _RTC_CMP = (0x02), // We should enable the CMP interrupt as we pass it back
-    _RTC_OVF = (0x01), // We should enable the OVF interrupt as we pass it back
-    _RTC_PIT=  (0x11), // We should enable the PIT interrupt as we pass it back
+typedef enum _MILLIS_RTC_INT_enum {
+  _RTC_CMP = (0x02), // We should enable the CMP interrupt as we pass it back
+  _RTC_OVF = (0x01), // We should enable the OVF interrupt as we pass it back
+  _RTC_PIT = (0x11), // We should enable the PIT interrupt as we pass it back
 } _MILLIS_RTC_INT_t;
 /* Used for the semi-internal _millisToRTC() */
 
@@ -587,19 +586,19 @@ F     b7  f07 f17 | D1  MUX  7  |         f27 f37     E0F A07
   #define ADC_ACC256S             (0xA8)
   #define ADC_ACC512S             (0xA9)
   #define ADC_ACC1024S            (0xAA)
-//Decimation
+  //Decimation
   #define ADC_RES13               (0x0D)
   #define ADC_RES14               (0x0E)
   #define ADC_RES15               (0x0F)
   #define ADC_RES16               (0x10)
   #define ADC_RES17               (0x11)
-//Sign Chopping Decimation
+  //Sign Chopping Decimation
   #define ADC_RES13S              (0x4D)
   #define ADC_RES14S              (0x4E)
   #define ADC_RES15S              (0x4F)
   #define ADC_RES16S              (0x50)
   #define ADC_RES17S              (0x51)
-// Power Options
+  // Power Options
   #define LOW_LAT_ON              (0x03) // deprecated
   #define LOW_LAT_OFF             (0x02) // deprecated
   #define ADC_LOWLAT_ON           (0x03)
@@ -711,14 +710,14 @@ See Ref_Analog.md for more information of the representations of "analog pins". 
     #error "Your custom variant says it provides a _digitalPinToCanon (SPECIAL_PIN_NUMBERS defined) but you don't provide one. \n Define NONCANONICAL_PIN_NUMBERS instead to use a possibly slower handler for the general case"
   #endif
 #endif
-  // this stuff used to be in the variants.
+// this stuff used to be in the variants.
 #if !defined(NUM_DIGITAL_PINS)
-/* Despite the name, this actually is a number 1 higher than the highest valid number for a digital pin
- * that is, it's the first integer which does not refer to a pin, and the number of digital pins if there
- * were no gaps in the numbering. Almost every pin mapping has gaps.
- * Tests like if (pin >= NUM_DIGITAL_PIN) return; are ubiquitous.
- * So we need to make our NUM_DIGITAL_PINS work like that.
- */
+  /* Despite the name, this actually is a number 1 higher than the highest valid number for a digital pin
+  * that is, it's the first integer which does not refer to a pin, and the number of digital pins if there
+  * were no gaps in the numbering. Almost every pin mapping has gaps.
+  * Tests like if (pin >= NUM_DIGITAL_PIN) return; are ubiquitous.
+  * So we need to make our NUM_DIGITAL_PINS work like that.
+  */
   #if defined(PIN_PG7) // if there's a PORTG, that's the last pin. Add 1 to get the first non-pin
     #define NUM_DIGITAL_PINS            (PIN_PG7 + 1)
   #elif defined(PIN_PF7)  // if the UPDI pin, PF7 is defined (ie, UPDI can be prorgrammed as GPIO)
@@ -757,7 +756,7 @@ See Ref_Analog.md for more information of the representations of "analog pins". 
 #define CHANNEL1_UNCHANGED    (0x41)
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
 
@@ -778,36 +777,36 @@ extern const uint8_t digital_pin_to_timer[];
  * when millis timekeeping has been disabled */
 
 #if !defined(LTODISABLED)
-  void badArg(const char*)    __attribute__((error("")));
-  void badCall(const char*)   __attribute__((error("")));
-  // The fast digital I/O functions only work when the pin is known at compile time.
-  inline __attribute__((always_inline)) void check_constant_pin(pin_size_t pin)
-  {
-    if(!__builtin_constant_p(pin))
-      badArg("Fast digital pin must be a constant");
+void badArg(const char *)    __attribute__((error("")));
+void badCall(const char *)   __attribute__((error("")));
+// The fast digital I/O functions only work when the pin is known at compile time.
+inline __attribute__((always_inline)) void check_constant_pin(pin_size_t pin) {
+  if (!__builtin_constant_p(pin)) {
+    badArg("Fast digital pin must be a constant");
   }
+}
 #else
-  void badArg(const char*);
-  void badCall(const char*);
-  void check_constant_pin(pin_size_t pin);
-  #if defined(ARDUINO_MAIN) // We need to make sure these substitutes for the badArg and badCall functions are generated once and only once.
-    // They must not attempt to actually detect any error if LTO is disabled
-    void badArg(__attribute__((unused))const char* c) {
-      return;
-    }
-    void badCall(__attribute__((unused))const char* c) {
-      return;
-    }
-    void check_constant_pin(__attribute__((unused))pin_size_t pin) {
-      return;
-    }
-  #endif
+void badArg(const char *);
+void badCall(const char *);
+void check_constant_pin(pin_size_t pin);
+#if defined(ARDUINO_MAIN) // We need to make sure these substitutes for the badArg and badCall functions are generated once and only once.
+// They must not attempt to actually detect any error if LTO is disabled
+void badArg(__attribute__((unused))const char *c) {
+  return;
+}
+void badCall(__attribute__((unused))const char *c) {
+  return;
+}
+void check_constant_pin(__attribute__((unused))pin_size_t pin) {
+  return;
+}
+#endif
 
-  // Intentionally outside of the above #if so that your console gets fucking spammed with this warning.
-  // The linker errors you turned off LTO to better understand will still be at the bottom.
-  #warning "LTO is disabled. digitalWriteFast(), digitalReadFast(), pinModeFast() and openDrainFast() are unavailable, delayMicroseconds() for short delays and delay() with millis timing disabled is less accuratetest. Unsupported forms of 'new' compile without errors (but always return a NULL pointer). Additionally, functions which normally generate a compile error when passed a value that is known to be invalid at compile time will not do so. The same is true of functions which are not valid with the currently selected tools submenu options."
-  #warning "This mode is ONLY for debugging LINK-TIME ERRORS that are reported by the linker as being located at .text+0, and you can't figure out where the bug is from other information it provides. As noted above, while this may make compilation succeed, it will only turn compile-time errors into incorrect runtime behavior, which is much harder to debug. As soon as the bug that forced this to be used is fixed, switch back to the standard platform.txt!"
-  #warning "UART implementation is forcibly downgraded, Flash.h writes are replaced with NOPs, and pin interrupts are downgraded to the old (less efficient) implementation. All uploading is disabled, and behavior of exported binaries may vary from normal behavior arbitrarily."
+// Intentionally outside of the above #if so that your console gets fucking spammed with this warning.
+// The linker errors you turned off LTO to better understand will still be at the bottom.
+#warning "LTO is disabled. digitalWriteFast(), digitalReadFast(), pinModeFast() and openDrainFast() are unavailable, delayMicroseconds() for short delays and delay() with millis timing disabled is less accuratetest. Unsupported forms of 'new' compile without errors (but always return a NULL pointer). Additionally, functions which normally generate a compile error when passed a value that is known to be invalid at compile time will not do so. The same is true of functions which are not valid with the currently selected tools submenu options."
+#warning "This mode is ONLY for debugging LINK-TIME ERRORS that are reported by the linker as being located at .text+0, and you can't figure out where the bug is from other information it provides. As noted above, while this may make compilation succeed, it will only turn compile-time errors into incorrect runtime behavior, which is much harder to debug. As soon as the bug that forced this to be used is fixed, switch back to the standard platform.txt!"
+#warning "UART implementation is forcibly downgraded, Flash.h writes are replaced with NOPs, and pin interrupts are downgraded to the old (less efficient) implementation. All uploading is disabled, and behavior of exported binaries may vary from normal behavior arbitrarily."
 #endif
 
 
@@ -816,32 +815,32 @@ extern const uint8_t digital_pin_to_timer[];
 inline __attribute__((always_inline)) void check_valid_digital_pin(pin_size_t pin) {
   if (__builtin_constant_p(pin)) {
     if (pin >= NUM_TOTAL_PINS && pin != NOT_A_PIN) {
-    // Exception made for NOT_A_PIN - code exists which relies on being able to pass this and have nothing happen.
-    // While IMO very poor coding practice, these checks aren't here to prevent lazy programmers from intentionally
-    // taking shortcuts we disapprove of, but to call out things that are virtually guaranteed to be a bug.
-    // Passing -1/255/NOT_A_PIN to the digital I/O functions is most likely intentional.
+      // Exception made for NOT_A_PIN - code exists which relies on being able to pass this and have nothing happen.
+      // While IMO very poor coding practice, these checks aren't here to prevent lazy programmers from intentionally
+      // taking shortcuts we disapprove of, but to call out things that are virtually guaranteed to be a bug.
+      // Passing -1/255/NOT_A_PIN to the digital I/O functions is most likely intentional.
       badArg("Digital pin is constant, but not a valid pin");
     }
     #if (((CLOCK_SOURCE & 0x03) == 2))
-      #if defined(MEGATINYCORE)
-        if (pin == PIN_PA3) {
-          badArg("Constant digital pin PIN_PA3 is used for the external osc, and is not available for other uses.");
-        }
-      #else
-        if (pin == PIN_PA0) {
-          badArg("Constant digital pin PIN_PA0 is used for the external osc, and is not available for other uses.");
-        }
-      #endif
-    #elif ((CLOCK_SOURCE & 0x03) == 1)
-      if (pin < 2) {
-        badArg("Pin PA0 and PA1 cannot be used for digital I/O because those are used for external crystal clock.");
-      }
-    #elif defined(XTAL_PINS_HARDWIRED)
-      if (pin < 2) {
-        badArg("On the selected board, PA0 and PA1 are hardwired to the crystal. They may not be used for other purposes.");
-      }
-    #endif
+    #if defined(MEGATINYCORE)
+    if (pin == PIN_PA3) {
+      badArg("Constant digital pin PIN_PA3 is used for the external osc, and is not available for other uses.");
     }
+    #else
+    if (pin == PIN_PA0) {
+      badArg("Constant digital pin PIN_PA0 is used for the external osc, and is not available for other uses.");
+    }
+    #endif
+    #elif ((CLOCK_SOURCE & 0x03) == 1)
+    if (pin < 2) {
+      badArg("Pin PA0 and PA1 cannot be used for digital I/O because those are used for external crystal clock.");
+    }
+    #elif defined(XTAL_PINS_HARDWIRED)
+    if (pin < 2) {
+      badArg("On the selected board, PA0 and PA1 are hardwired to the crystal. They may not be used for other purposes.");
+    }
+    #endif
+  }
 }
 
 
@@ -866,7 +865,7 @@ void _delayMicroseconds(unsigned int us) __attribute__((noinline));
 void stop_millis();                          // stop the timer being used for millis, and disable the interrupt.
 void restart_millis();                       // After having stopped millis either for sleep or to use timer for something else and optionally have set it to correct for passage of time, call this to restart it.
 void set_millis(uint32_t newmillis);         // Sets the millisecond timer to the specified number of milliseconds. DO NOT CALL with a number lower than the current millis count if you have any timeouts ongoing.
-                                             // they may expire instantly.
+// they may expire instantly.
 void nudge_millis(uint16_t nudgemillis);     // Sets the millisecond timer forward by the specified number of milliseconds.
 
 uint8_t _getCurrentMillisTimer();
@@ -891,14 +890,14 @@ void resumeTCE0();                           // Restores core-mediated functiona
 // bool digitalPinHasPWM(uint8_t p);         // Macro. Returns true if the pin can currently output PWM using analogWrite(), regardless of which timer is used and considering current PORTMUX setting
 void init_ADC0(void); /* Called by init() after clock is set */
 #if defined(ADC1)
-  void init_ADC1(void); /* Never called automatically, but must be called manuaklkly in order to use the ADC1 functions. */
+void init_ADC1(void); /* Never called automatically, but must be called manuaklkly in order to use the ADC1 functions. */
 #endif
 void init_timers();   /* called by init()        */
 // These are in here so that - should it be necessary - library functions or user code could override these.
 void init_clock()     __attribute__((weak)); // this is called first, to initialize the system clock.
 void init_ADC0()      __attribute__((weak)); // this is called to initialize ADC0
 #if defined(ADC1)
-  void init_ADC1();   __attribute__((weak)); /* Never called automatically, but must be called manuaklkly in order to use the ADC1 functions. */
+void init_ADC1();   __attribute__((weak)); /* Never called automatically, but must be called manuaklkly in order to use the ADC1 functions. */
 #endif
 //   init_DAC0()                             // no _init_DAC0() - all that the core does is call DACReference!
 void init_TCA0()      __attribute__((weak)); // called by init_timers() - without this, pins that give PWM from TCA0 will not function.
@@ -915,14 +914,14 @@ void onClockTimeout() __attribute__((weak)); // called if we try to switch to ex
 // Covered in documentation.
 void                  openDrain(uint8_t pinNumber,   uint8_t val);
 #if !defined(LTODISABLED)
-  int8_t        digitalReadFast(uint8_t pinNumber               );
-  void         digitalWriteFast(uint8_t pinNumber,   uint8_t val);
-  void              pinModeFast(uint8_t pinNumber,  uint8_t mode);
-  void            openDrainFast(uint8_t pinNumber,   uint8_t val);
+int8_t        digitalReadFast(uint8_t pinNumber);
+void         digitalWriteFast(uint8_t pinNumber,   uint8_t val);
+void              pinModeFast(uint8_t pinNumber,  uint8_t mode);
+void            openDrainFast(uint8_t pinNumber,   uint8_t val);
 #endif
 
 
-void                 turnOffPWM(uint8_t pinNumber               );
+void                 turnOffPWM(uint8_t pinNumber);
 uint8_t          PWMoutputTopin(uint8_t timer, uint8_t channel);
 // Get the bit location within the hardware port of the given virtual pin.
 // This comes from the arrays in the  pins_arduino.c file for the active
@@ -931,21 +930,21 @@ uint8_t          PWMoutputTopin(uint8_t timer, uint8_t channel);
 // The old attachInterrupt did not require any calls to be made to enable a port.
 // It would just grab every port, and take over every port's pin interrupt ISR, so nobody could define one themselves.
 // which wouldn't be so bad... except that attachInterrupt interrupts are slow as hell
-  void attachPortAEnable();
-  void attachPortBEnable();
-  void attachPortCEnable();
-  void attachPortDEnable();
-  void attachPortEEnable();
-  void attachPortFEnable();
-  void attachPortGEnable();
+void attachPortAEnable();
+void attachPortBEnable();
+void attachPortCEnable();
+void attachPortDEnable();
+void attachPortEEnable();
+void attachPortFEnable();
+void attachPortGEnable();
 #endif
 #if defined(PORTA_EVGENCTRLA) //Ex-series only - this all may belong in the Event library anyway, but since the conditional is never met, this code is never used.
-  uint8_t   _getPortEventConfig(uint8_t port); // just shorthand for looking up the port and returning it's EVGENCTRL value
-  uint8_t    _getRTCEventConfig(); //simply returns the RTC channel configuration. Will likely return 255 if called on non Ex
-  uint8_t     _RTCPrescaleToVal(uint16_t prescale);
-  uint8_t          _setEventPin(uint8_t pin,   uint8_t number); // preliminary thought - pass a pin number, it looks up port, and from there the event control register and sets it.
-  uint8_t      _setRTCEventChan(uint8_t val,   uint8_t chan); // number is 0, 1 or 255 like above, div is log(2) of the divisor (ie, for 2^5, his would be 5).
-  uint8_t      _setRTCEventChan(uint8_t val,   uint8_t chan);
+uint8_t   _getPortEventConfig(uint8_t port); // just shorthand for looking up the port and returning it's EVGENCTRL value
+uint8_t    _getRTCEventConfig(); //simply returns the RTC channel configuration. Will likely return 255 if called on non Ex
+uint8_t     _RTCPrescaleToVal(uint16_t prescale);
+uint8_t          _setEventPin(uint8_t pin,   uint8_t number); // preliminary thought - pass a pin number, it looks up port, and from there the event control register and sets it.
+uint8_t      _setRTCEventChan(uint8_t val,   uint8_t chan); // number is 0, 1 or 255 like above, div is log(2) of the divisor (ie, for 2^5, his would be 5).
+uint8_t      _setRTCEventChan(uint8_t val,   uint8_t chan);
 #endif
 // ANALOG EXTENDED FUNCTIONS
 // Covered in documentation.
@@ -961,7 +960,7 @@ int8_t  getAnalogReadResolution();
 uint8_t         getDACReference();
 uint8_t      getAnalogReference();
 uint8_t getAnalogSampleDuration();
-  void    ADCPowerOptions(uint8_t options);
+void    ADCPowerOptions(uint8_t options);
 
 
 
@@ -978,7 +977,7 @@ uint8_t getAnalogSampleDuration();
   #include "UART.h"
 
   //uint8_t digitalPinToTimerNow(uint8_t p);=
-  int32_t analogReadEnh( uint8_t pin,              uint8_t res = ADC_NATIVE_RESOLUTION, uint8_t gain = 0);
+  int32_t analogReadEnh(uint8_t pin,              uint8_t res = ADC_NATIVE_RESOLUTION, uint8_t gain = 0);
   int32_t analogReadDiff(uint8_t pos, uint8_t neg, uint8_t res = ADC_NATIVE_RESOLUTION, uint8_t gain = 0);
   int16_t analogClockSpeed(int16_t frequency = 0,  uint8_t options = 0);
 #endif
@@ -1028,79 +1027,79 @@ void _pinconfigure(uint8_t pin, uint16_t pin_config);
 void pinConfigure(uint8_t digital_pin, uint16_t pin_config);
 
 #ifdef __cplusplus
-  typedef enum : uint16_t {
-   // OUTPUT
-    PIN_DIR_SET        = 0x0001,
-    PIN_DIRSET         = 0x0001,
-    PIN_DIR_OUTPUT     = 0x0001,
-    PIN_DIR_OUT        = 0x0001,
-   // INPUT
-    PIN_DIR_CLR        = 0x0002,
-    PIN_DIRCLR         = 0x0002,
-    PIN_DIR_INPUT      = 0x0002,
-    PIN_DIR_IN         = 0x0002,
-   // TOGGLE INPUT/OUTPUT
-    PIN_DIR_TGL        = 0x0003,
-    PIN_DIRTGL         = 0x0003,
-    PIN_DIR_TOGGLE     = 0x0003,
-   // HIGH
-    PIN_OUT_SET        = 0x0004,
-    PIN_OUTSET         = 0x0004,
-    PIN_OUT_HIGH       = 0x0004,
-   // LOW
-    PIN_OUT_CLR        = 0x0008,
-    PIN_OUTCLR         = 0x0008,
-    PIN_OUT_LOW        = 0x0008,
+typedef enum : uint16_t {
+  // OUTPUT
+  PIN_DIR_SET        = 0x0001,
+  PIN_DIRSET         = 0x0001,
+  PIN_DIR_OUTPUT     = 0x0001,
+  PIN_DIR_OUT        = 0x0001,
+  // INPUT
+  PIN_DIR_CLR        = 0x0002,
+  PIN_DIRCLR         = 0x0002,
+  PIN_DIR_INPUT      = 0x0002,
+  PIN_DIR_IN         = 0x0002,
+  // TOGGLE INPUT/OUTPUT
+  PIN_DIR_TGL        = 0x0003,
+  PIN_DIRTGL         = 0x0003,
+  PIN_DIR_TOGGLE     = 0x0003,
+  // HIGH
+  PIN_OUT_SET        = 0x0004,
+  PIN_OUTSET         = 0x0004,
+  PIN_OUT_HIGH       = 0x0004,
+  // LOW
+  PIN_OUT_CLR        = 0x0008,
+  PIN_OUTCLR         = 0x0008,
+  PIN_OUT_LOW        = 0x0008,
   // CHANGE/TOGGLE
-    PIN_OUT_TGL        = 0x000C,
-    PIN_OUTTGL         = 0x000C,
-    PIN_OUT_TOGGLE     = 0x000C,
+  PIN_OUT_TGL        = 0x000C,
+  PIN_OUTTGL         = 0x000C,
+  PIN_OUT_TOGGLE     = 0x000C,
   //Interrupt disabled but input buffer enabled
-    PIN_ISC_ENABLE     = 0x0080,
-    PIN_INPUT_ENABLE   = 0x0080,
-   // Interrupt on change
-    PIN_ISC_CHANGE     = 0x0090,
-    PIN_INT_CHANGE     = 0x0090,
+  PIN_ISC_ENABLE     = 0x0080,
+  PIN_INPUT_ENABLE   = 0x0080,
+  // Interrupt on change
+  PIN_ISC_CHANGE     = 0x0090,
+  PIN_INT_CHANGE     = 0x0090,
   // Interrupt on rising edge
-    PIN_ISC_RISE       = 0x00A0,
-    PIN_INT_RISE       = 0x00A0,
+  PIN_ISC_RISE       = 0x00A0,
+  PIN_INT_RISE       = 0x00A0,
   // Interrupt on falling edge
-    PIN_ISC_FALL       = 0x00B0,
-    PIN_INT_FALL       = 0x00B0,
+  PIN_ISC_FALL       = 0x00B0,
+  PIN_INT_FALL       = 0x00B0,
   // Interrupt and input buffer disabled
-    PIN_ISC_DISABLE    = 0x00C0,
-    PIN_INPUT_DISABLE  = 0x00C0,
+  PIN_ISC_DISABLE    = 0x00C0,
+  PIN_INPUT_DISABLE  = 0x00C0,
   // Interrupt enabled with sense on low level
-    PIN_ISC_LEVEL      = 0x00D0,
-    PIN_INT_LEVEL      = 0x00D0,
+  PIN_ISC_LEVEL      = 0x00D0,
+  PIN_INT_LEVEL      = 0x00D0,
   // PULLUP ON
-    PIN_PULLUP_ON      = 0x0100,
-    PIN_PULLUP         = 0x0100,
-    PIN_PULLUP_SET     = 0x0100,
+  PIN_PULLUP_ON      = 0x0100,
+  PIN_PULLUP         = 0x0100,
+  PIN_PULLUP_SET     = 0x0100,
   // PULLUP OFF
-    PIN_PULLUP_OFF     = 0x0200,
-    PIN_PULLUP_CLR     = 0x0200,
+  PIN_PULLUP_OFF     = 0x0200,
+  PIN_PULLUP_CLR     = 0x0200,
   // PULLUP TOGGLE
-    PIN_PULLUP_TGL     = 0x0300,
-    PIN_PULLUP_TOGGLE  = 0x0300,
-    PIN_NOPULLUP       = 0x0200,
+  PIN_PULLUP_TGL     = 0x0300,
+  PIN_PULLUP_TOGGLE  = 0x0300,
+  PIN_NOPULLUP       = 0x0200,
   // Pin Input Level Control
-    PIN_INLVL_TTL      = 0x1000,
-    PIN_INLVL_ON       = 0x1000,
-    PIN_INLVL_SET      = 0x1000,
-    PIN_INLVL_SCHMITT  = 0x2000,
-    PIN_INLVL_OFF      = 0x2000,
-    PIN_INLVL_CLR      = 0x2000, // alias
+  PIN_INLVL_TTL      = 0x1000,
+  PIN_INLVL_ON       = 0x1000,
+  PIN_INLVL_SET      = 0x1000,
+  PIN_INLVL_SCHMITT  = 0x2000,
+  PIN_INLVL_OFF      = 0x2000,
+  PIN_INLVL_CLR      = 0x2000, // alias
   // PIN INVERT ON
-    PIN_INVERT_ON      = 0x4000,
-    PIN_INVERT_SET     = 0x4000,
+  PIN_INVERT_ON      = 0x4000,
+  PIN_INVERT_SET     = 0x4000,
   // PIN INVERT OFF
-    PIN_INVERT_OFF     = 0x8000,
-    PIN_INVERT_CLR     = 0x8000,
+  PIN_INVERT_OFF     = 0x8000,
+  PIN_INVERT_CLR     = 0x8000,
   // PIN_INVERT_TOGGLE
-    PIN_INVERT_TGL     = 0xC000,
-    PIN_INVERT_TOGGLE  = 0xC000
-  } pin_configure_t;
+  PIN_INVERT_TGL     = 0xC000,
+  PIN_INVERT_TOGGLE  = 0xC000
+} pin_configure_t;
 
 /**
  * @brief Helper functions to catch the last argument in the pincfg recursion loop
@@ -1109,40 +1108,40 @@ void pinConfigure(uint8_t digital_pin, uint16_t pin_config);
  * @return pin_configure_t
  */
 
-  inline pin_configure_t _pincfg(const pin_configure_t mode) {
-    return mode;
-  }
+inline pin_configure_t _pincfg(const pin_configure_t mode) {
+  return mode;
+}
 
-  /**
-   * @brief Helper functions to catch the nth in the pincfg recursion loop
-   *
-   * @param digital_pin Arduino pin
-   * @param mode First "mode" parameter
-   * @param modes Nth "mode" parameter
-   * @return uint16_t pin configuration or'ed together
-   */
-  template <typename... MODES>
-  uint16_t _pincfg(const pin_configure_t mode, const MODES&... modes) {
-    return mode | _pincfg(modes...);
-  }
+/**
+ * @brief Helper functions to catch the nth in the pincfg recursion loop
+ *
+ * @param digital_pin Arduino pin
+ * @param mode First "mode" parameter
+ * @param modes Nth "mode" parameter
+ * @return uint16_t pin configuration or'ed together
+ */
+template <typename... MODES>
+uint16_t _pincfg(const pin_configure_t mode, const MODES &... modes) {
+  return mode | _pincfg(modes...);
+}
 
 
 
-  //void        pinConfigure(const uint8_t pinNumber, const uint16_t mode, const MODES&... modes);
+//void        pinConfigure(const uint8_t pinNumber, const uint16_t mode, const MODES&... modes);
 
-  /**
-   * @brief Variadic template function for configuring a pin
-   *
-   * @param digital_pin Arduino pin number
-   * @param mode First "mode" parameter
-   * @param modes Nth "mode" parameter
-   */
-  template <typename... MODES>
-  void pinConfigure(const uint8_t digital_pin, const pin_configure_t mode, const MODES&... modes) {
-    // Or-ing together the arguments using recursion
-    uint16_t pin_config = _pincfg(mode, modes...);
-    _pinconfigure(digital_pin, pin_config);
-  }
+/**
+ * @brief Variadic template function for configuring a pin
+ *
+ * @param digital_pin Arduino pin number
+ * @param mode First "mode" parameter
+ * @param modes Nth "mode" parameter
+ */
+template <typename... MODES>
+void pinConfigure(const uint8_t digital_pin, const pin_configure_t mode, const MODES &... modes) {
+  // Or-ing together the arguments using recursion
+  uint16_t pin_config = _pincfg(mode, modes...);
+  _pinconfigure(digital_pin, pin_config);
+}
 #endif // end
 
 /* If you understand the preceding code, studies show you are more likely than the average developer to

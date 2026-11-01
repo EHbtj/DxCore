@@ -35,20 +35,20 @@ int8_t setMAX38903Voltage(uint8_t setting) {
     if (setting == REG_OFF) {          // cpi breq
       return 0;                       // ldi
     }
-    if (setting     &  (1 << 7))  {   // sbrc rjmp
-      VPORTG.DIR   |=  (1 << 7);      // sbi
-      if (setting   &  (1 << 3))  {   // sbrc
-        VPORTG.OUT |=  (1 << 7);      // sbi
+    if (setting     & (1 << 7))  {    // sbrc rjmp
+      VPORTG.DIR   |= (1 << 7);       // sbi
+      if (setting   & (1 << 3))  {    // sbrc
+        VPORTG.OUT |= (1 << 7);       // sbi
       } else {                        // sbrs
         VPORTG.OUT &= ~(1 << 7);      // cbi
       }                               // rjmp
     } else {
       VPORTG.DIR   &= ~(1 << 7);      // cbi
     }
-    if (!(setting   &  (1 << 6))) {  // sbrs rjmp
-      VPORTG.DIR   |=  (1 << 6);     // sbi
-      if (setting   &  (1 << 2))  {  // sbrc
-        VPORTG.OUT |=  (1 << 6);     // sbi
+    if (!(setting   & (1 << 6))) {   // sbrs rjmp
+      VPORTG.DIR   |= (1 << 6);      // sbi
+      if (setting   & (1 << 2))  {   // sbrc
+        VPORTG.OUT |= (1 << 6);      // sbi
       } else {                       // sbrs
         VPORTG.OUT &= ~(1 << 6);     // cbi
       }                              // rjmp
@@ -56,7 +56,7 @@ int8_t setMAX38903Voltage(uint8_t setting) {
       VPORTG.DIR   &= ~(1 << 6);     // cbi
     }
     _NOPNOP();
-    VPORTE.OUT     |=  (1 << 6);     // sbi
+    VPORTE.OUT     |= (1 << 6);      // sbi
     return 1;                        // ldi ret
   }
 }

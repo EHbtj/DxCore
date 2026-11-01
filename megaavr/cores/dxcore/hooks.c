@@ -26,7 +26,9 @@
  * Its defined as a weak symbol and it can be redefined to implement a
  * real cooperative scheduler.
  */
-void __attribute__((weak)) yield(void)  {return;}
+void __attribute__((weak)) yield(void)  {
+  return;
+}
 
 /* Hooks to get in real early. onPreMain runs in init3,
  * (it gets called by _initthreestuff, which is setting IVSEL if we are using a fake bootloader section,

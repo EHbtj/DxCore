@@ -135,7 +135,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 #ifdef SPI_MUX_PINSWAP_3
   #if defined(PIN_SPI_SS_PINSWAP_3)
-      #define SS_ALT3    PIN_SPI_SS_PINSWAP_3
+    #define SS_ALT3    PIN_SPI_SS_PINSWAP_3
   #else
     #define SS_ALT3     NOT_A_PIN
   #endif
@@ -313,68 +313,68 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 /* SPI1 is easy-peasy */
 #ifdef PIN_SPI1_SCK_PINSWAP_1
-#if defined(PIN_SPI1_SS_PINSWAP_1)
-  #define SS1_ALT1    PIN_SPI1_SS_PINSWAP_1
-#else
-  #define SS1_ALT1     NOT_A_PIN
-#endif
-#if defined(PIN_SPI1_MOSI_PINSWAP_1)
-  #define MOSI1_ALT1  PIN_SPI1_MOSI_PINSWAP_1
-#else
-  #define MOSI1_ALT1   NOT_A_PIN
-#endif
-#if defined(PIN_SPI1_MISO_PINSWAP_1)
-  #define MISO1_ALT1  PIN_SPI1_MISO_PINSWAP_1
-#else
-  #define MISO1_ALT1   NOT_A_PIN
-#endif
-#if defined(PIN_SPI1_SCK_PINSWAP_1)
-  #define SCK1_ALT1   PIN_SPI1_SCK_PINSWAP_1
-#else
-  #define SCK1_ALT1    NOT_A_PIN
-#endif
+  #if defined(PIN_SPI1_SS_PINSWAP_1)
+    #define SS1_ALT1    PIN_SPI1_SS_PINSWAP_1
+  #else
+    #define SS1_ALT1     NOT_A_PIN
+  #endif
+  #if defined(PIN_SPI1_MOSI_PINSWAP_1)
+    #define MOSI1_ALT1  PIN_SPI1_MOSI_PINSWAP_1
+  #else
+    #define MOSI1_ALT1   NOT_A_PIN
+  #endif
+  #if defined(PIN_SPI1_MISO_PINSWAP_1)
+    #define MISO1_ALT1  PIN_SPI1_MISO_PINSWAP_1
+  #else
+    #define MISO1_ALT1   NOT_A_PIN
+  #endif
+  #if defined(PIN_SPI1_SCK_PINSWAP_1)
+    #define SCK1_ALT1   PIN_SPI1_SCK_PINSWAP_1
+  #else
+    #define SCK1_ALT1    NOT_A_PIN
+  #endif
 #endif
 #ifdef PIN_SPI1_SCK_PINSWAP_2
-#if defined(PIN_SPI1_SS_PINSWAP_2)
-  #define SS1_ALT2    PIN_SPI1_SS_PINSWAP_2
-#else
-  #define SS1_ALT2     NOT_A_PIN
-#endif
-#if defined(PIN_SPI1_MOSI_PINSWAP_2)
-  #define MOSI1_ALT2  PIN_SPI1_MOSI_PINSWAP_2
-#else
-  #define MOSI1_ALT2   NOT_A_PIN
-#endif
-#if defined(PIN_SPI1_MISO_PINSWAP_2)
-  #define MISO1_ALT2  PIN_SPI1_MISO_PINSWAP_2
-#else
-  #define MISO1_ALT2   NOT_A_PIN
-#endif
-#if defined(PIN_SPI1_SCK_PINSWAP_2)
-  #define SCK1_ALT2   PIN_SPI1_SCK_PINSWAP_2
-#else
-  #define SCK1_ALT2    NOT_A_PIN
-#endif
+  #if defined(PIN_SPI1_SS_PINSWAP_2)
+    #define SS1_ALT2    PIN_SPI1_SS_PINSWAP_2
+  #else
+    #define SS1_ALT2     NOT_A_PIN
+  #endif
+  #if defined(PIN_SPI1_MOSI_PINSWAP_2)
+    #define MOSI1_ALT2  PIN_SPI1_MOSI_PINSWAP_2
+  #else
+    #define MOSI1_ALT2   NOT_A_PIN
+  #endif
+  #if defined(PIN_SPI1_MISO_PINSWAP_2)
+    #define MISO1_ALT2  PIN_SPI1_MISO_PINSWAP_2
+  #else
+    #define MISO1_ALT2   NOT_A_PIN
+  #endif
+  #if defined(PIN_SPI1_SCK_PINSWAP_2)
+    #define SCK1_ALT2   PIN_SPI1_SCK_PINSWAP_2
+  #else
+    #define SCK1_ALT2    NOT_A_PIN
+  #endif
 #endif
 #if defined(PIN_SPI1_SS)
-#define SS1    PIN_SPI1_SS
+  #define SS1    PIN_SPI1_SS
 #else
-#define SS1     NOT_A_PIN
+  #define SS1     NOT_A_PIN
 #endif
 #if defined(PIN_SPI1_MOSI)
-#define MOSI1  PIN_SPI1_MOSI
+  #define MOSI1  PIN_SPI1_MOSI
 #else
-#define MOSI1   NOT_A_PIN
+  #define MOSI1   NOT_A_PIN
 #endif
 #if defined(PIN_SPI1_MISO)
-#define MISO1  PIN_SPI1_MISO
+  #define MISO1  PIN_SPI1_MISO
 #else
-#define MISO1   NOT_A_PIN
+  #define MISO1   NOT_A_PIN
 #endif
 #if defined(PIN_SPI1_SCK)
-#define SCK1   PIN_SPI1_SCK
+  #define SCK1   PIN_SPI1_SCK
 #else
-#define SCK1    NOT_A_PIN
+  #define SCK1    NOT_A_PIN
 #endif
 
 #if defined(SPI1_MUX)

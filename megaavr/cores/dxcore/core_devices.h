@@ -414,29 +414,29 @@
 #endif
 
 #if   defined(DX_14_PINS)
-     #define                  _AVR_PINCOUNT (14)
+  #define                  _AVR_PINCOUNT (14)
 #elif defined(DX_20_PINS)
-     #define                  _AVR_PINCOUNT (20)
+  #define                  _AVR_PINCOUNT (20)
 #elif defined(DX_28_PINS)
-     #define                  _AVR_PINCOUNT (28)
+  #define                  _AVR_PINCOUNT (28)
 #elif defined(DX_32_PINS)
-     #define                  _AVR_PINCOUNT (32)
+  #define                  _AVR_PINCOUNT (32)
 #elif defined(DX_48_PINS)
-     #define                  _AVR_PINCOUNT (48)
+  #define                  _AVR_PINCOUNT (48)
 #elif defined(DX_64_PINS)
-     #define                  _AVR_PINCOUNT (64)
+  #define                  _AVR_PINCOUNT (64)
 #elif defined(EX_14_PINS)
-     #define                  _AVR_PINCOUNT (14)
+  #define                  _AVR_PINCOUNT (14)
 #elif defined(EX_20_PINS)
-     #define                  _AVR_PINCOUNT (20)
+  #define                  _AVR_PINCOUNT (20)
 #elif defined(EX_28_PINS)
-     #define                  _AVR_PINCOUNT (28)
+  #define                  _AVR_PINCOUNT (28)
 #elif defined(EX_32_PINS)
-     #define                  _AVR_PINCOUNT (32)
+  #define                  _AVR_PINCOUNT (32)
 #elif defined(EX_48_PINS)
-     #define                  _AVR_PINCOUNT (48)
+  #define                  _AVR_PINCOUNT (48)
 #elif defined(EX_64_PINS) // (they'll make one eventually maybe? Or maybe that'll wait until some later F-series. )
-     #define                  _AVR_PINCOUNT (64)
+  #define                  _AVR_PINCOUNT (64)
 #endif
 
 
@@ -581,12 +581,12 @@
 
 #if defined(OPAMP)
   /* OPAMPS:
-   * A future part could have more opamps - or possibly fewer, though that seems less likely. There's room for 6 in the struct,
-   * which has 64 bytes - 8 per OPAMP, and 16 at the start used for global settings
-   * At time of writing, on the only parts with OPAMPs, only 4 of the global bytes are used
-   * and 6 of the 8 bytes for each OPAMP are used (the other 2 are spares?)
-   * but yeah, max opamps supported without changes to the struct is 6, so 6 is how many we check for.
-   */
+  * A future part could have more opamps - or possibly fewer, though that seems less likely. There's room for 6 in the struct,
+  * which has 64 bytes - 8 per OPAMP, and 16 at the start used for global settings
+  * At time of writing, on the only parts with OPAMPs, only 4 of the global bytes are used
+  * and 6 of the 8 bytes for each OPAMP are used (the other 2 are spares?)
+  * but yeah, max opamps supported without changes to the struct is 6, so 6 is how many we check for.
+  */
   #if defined(OPAMP_OP5CTRLA)
     #define _AVR_OPAMP_COUNT   (6)
   #elif defined(OPAMP_OP4CTRLA)
@@ -828,7 +828,7 @@
 
 DB silicon with die rev 0x11 is available.*/
 
- /* See Ref_Errata.md in the documentation, and the official errata document for more information.
+/* See Ref_Errata.md in the documentation, and the official errata document for more information.
 // The 128DA had a few unique and nasty ones. */
 #if defined(__AVR_DA__) && (_AVR_FLASH == 128) /* Only the Rev. A8 has shipped. We are all wondering where the die rev is....                              */
   #define ERRATA_TCA1_PORTMUX            (1) /* DA128's up to Rev. A8 have only the first two pinmapping options working                                   */
@@ -917,12 +917,12 @@ DB silicon with die rev 0x11 is available.*/
   #define ERRATA_2V7_MIN_FLASH           (0x12) // *Depends on whose perspective. The guys running at 2.5V are quite troubled by the no-writes below 2V7; your bootloader is going to only work on some EA's due to the erasewrite issue,
   //                                               and the chips themselves said forming memories hurt, so I think the write ensurance would have their vote for most injurious.* ""
 
-/* *Hmm, as I'm reading that, there's no way to do self programming in C and be guaranteed safe output, because there's no way to prevent C from executing ld, ldd, or lds on the NRWW section. But a tight bootloader might not need to ever do something like
-    that; they say instruction fetch is okay, and why would you be reading data from the bootloader section of the flash? I don't think any of the actual software that implements subsets of STK500 would do any of those things - like, the protocol allows it
-    but I don't think any contemporary implementations of stk500 and optiboot with a naive port would run into trouble here*
-   "Oh, and that bit about multipage flash erase not causing problems for bootloader? You know we never used multipage erase right? I tried, but the overhead of switching commands ends up taking way too much flash."
+  /* *Hmm, as I'm reading that, there's no way to do self programming in C and be guaranteed safe output, because there's no way to prevent C from executing ld, ldd, or lds on the NRWW section. But a tight bootloader might not need to ever do something like
+  that; they say instruction fetch is okay, and why would you be reading data from the bootloader section of the flash? I don't think any of the actual software that implements subsets of STK500 would do any of those things - like, the protocol allows it
+  but I don't think any contemporary implementations of stk500 and optiboot with a naive port would run into trouble here*
+  "Oh, and that bit about multipage flash erase not causing problems for bootloader? You know we never used multipage erase right? I tried, but the overhead of switching commands ends up taking way too much flash."
 
-*/
+  */
 #elif defined(__AVR_DU__)
   #define ERRATA_USB_ODD_POINTER         (1)
   #define ERRATA_USART_ISFIF             (1) // Mmm - no, I guess it wasn't a matter of catching it in time. I just don't think this is considered enough of a problem. I don't disagree. It's easy to work around, and involves handling error conditions
@@ -1175,8 +1175,8 @@ int8_t _setCPUSpeed(uint8_t omhz) {
     #define _switchInternalToF_CPU() { _setPrescale2x(); _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA, (0x08 << 2));}
   #elif (F_CPU == 8000000)
     #define _switchInternalToF_CPU() { _setPrescale1x(); _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA, (0x05 << 2));}
-  // this setting is mysteriously not used, and it is unknown how the chip will behave if 0x04 is written to this bitfield
-  //#define _switchInternalToF_CPU()                     _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA, (0x04 << 2))
+    // this setting is mysteriously not used, and it is unknown how the chip will behave if 0x04 is written to this bitfield
+    //#define _switchInternalToF_CPU()                     _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA, (0x04 << 2))
   #elif (F_CPU == 5000000)
     #define _switchInternalToF_CPU() { _setPrescale4x(); _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA, (0x08 << 2));}
   #elif (F_CPU == 4000000)
@@ -2186,9 +2186,9 @@ has once worked for the same thing as meaning that thing */
   // If the above line remains commented out (recommended), the compatibility defines are turned ON.
   #if defined(RTC_CLKSEL)
     /* Man they just *HAD* to change the names of these values that get assigned to the same register and do the same thing didn't they?
-     * Worse still we can't even verify that they are present... just blindly define and pray. Enums can't be seen by macros
-     */
-     // tinyAVR has TOSC32K (tinyOscillator?)
+    * Worse still we can't even verify that they are present... just blindly define and pray. Enums can't be seen by macros
+    */
+    // tinyAVR has TOSC32K (tinyOscillator?)
     #if defined(MEGATINYCORE)
       #define RTC_CLKSEL_OSC32K_gc            RTC_CLKSEL_INT32K_gc  //Tiny has an INTernal oscillator at 32K
       #define RTC_CLKSEL_OSC1K_gc             RTC_CLKSEL_INT1K_gc
@@ -2209,67 +2209,67 @@ has once worked for the same thing as meaning that thing */
     #endif
   #endif
   /* General Purpose Register names, GPR.GPRn, vs GPIORn vs GPIOn
-   * They now appear to have decided they don't like either of the previous conventions, one just a few years old. Now they are grouping
-   * them under a "General Purpose Register". "peripheral". I cannot argue that GPR doesn't make more sense, as there's not really any
-   * I/O occurring here (ofc they were referring to the IN and OUT instructions, which can be used on these), but I certainly wouldn't
-   * have changed a convention like this, at least not when I had just done so a few years prior. */
+  * They now appear to have decided they don't like either of the previous conventions, one just a few years old. Now they are grouping
+  * them under a "General Purpose Register". "peripheral". I cannot argue that GPR doesn't make more sense, as there's not really any
+  * I/O occurring here (ofc they were referring to the IN and OUT instructions, which can be used on these), but I certainly wouldn't
+  * have changed a convention like this, at least not when I had just done so a few years prior. */
 
   // All non-xmega pre-Dx-series modern AVR parts call them GPIORn instead of GPR.GPRn/GPR_GPRn
   // Some classics called them GPIOn.
 
   /* In one xMega AVR, they were GPIOn, rather than GPIORn
-   * One? Yup: The ATxmega32d4. Not the 32d3, nor the 32e5, nor anything else. All the xmega's have GPIORs
-   * and their headers list the GPIOn names too. But.... there is only a single header
-   * file with them not marked as "Deprecated". And that's the ATxmega32d4
-   * 24 of the 46 xmega parts with headers in the compiler packages (including the 32d3 and 32e5) had the
-   * 4 GPIOR's that we have, and had GPIOn and GPIO_GPIOn present but marked as deprecated.
-   * On those parts, these are at addresses 0x0000-0x003, and 0x0004-0x000F do not appear to be used.
-   * The other 22.... had THE ENTIRE FIRST HALF OF THE LOW I/O SPACE as GPIOR0-GPIORF!
-   * Which ones got all of them and which ones only got 4 seems to have been chosen in typical
-   * Atmel fashion (hint: it involved flipping a coin). No apparent pattern in time or other parameters.
-   * Either way, that left them with space for only 4 VPORT register sets (like the ones we got)
-   * These had to be configured to point to the desired port.
-   * I'm sure everyone is grateful for the fact that the folks designing the modern AVRs had their
-   * heads screwed on more securely than the xMega team and realized that 4 GPIOR-- excuse me, GPRs, 4 awkward VPORTs and
-   * a handful of unused addresses in the low I/O space was maybe not the best design decision made in the
-   * xmega line   *
-   * But regardless, the xmegas are not a rolemodel of success, even if they have their high points. They clearly know this at Microchip
-   * xMega appears to have been buried in a shallow grave shortly after Microchip showed up
-   *
-   * If you look at their latest upcoming products, it's clear that they've been doing this to more peripherals. The EB-series for example, pulls in the
-   * other monster of a timer that the characters above refer to, changing it's name to TCE - it's not mixed up with all the async crap of TCD,
-   * but it adds at least as much complexity, including a lot of similar features, as well as a simpler "TCF". I'm not sure if the TCF was a refurbished
-   * pull from their scrapyard, or a de-novo utility timer written for these parts to address some of the shortcomings in their PWM capabilities. And to
-   * find something else to do with that epic PLL.
-   *
-   * They needed act with a sense of urgency, as Atmel had taken their eye off the eight ball, and possibly balls 0x9 to 0xF too - classic AVR was stagnant, but xMega was
-   * not getting the kind of market penetration they'd hoped and expected), the final classic AVRs were the PB's on the mega side, which got "cut off" at the
-   * 324pb - likely a hard deadline for "no more classics after xx/yy/zzzz" was reached. The final tinies, the 841/441/1634/828 (the final four) generally showed
-   * visible symptoms of time pressure - subtle on the x41 (the most obvious being unused registers addresses in the low I/O while PUEx is marooned in the extended I/O
-   * instead of the low I/O like the other two parts did), clearly visible on the 1634, and so astonishingly, agonizingly debilitating to the 828 that
-   * I'm surprised they bothered to release it at all (it's crown jewel was the 28-input ADC... but the datasheet was clearly hastily redacted to omit
-   * any mention of having a differential ADC, and to add insult to injury, it's got a lame pin (sinks a few ma when WDT isn't on, yeah, wtf?) - and
-   * to add further injury to the insult, that pin happens to be the SCL pin.......
-   *
-   * If chip designs are cars, I'm imagining these designers in a lot full of old weatherbeaten devices, scrounging for peripherals to soup up is nes
-   * "AVRxm" chip they were working on.
-   * "Hey how bout this CCL doohickey?"
-   * "Too complicated, boss said simplifying the product line! Look at all this crap, what the hell were we thinking combining the CCL and timers?!"
-   * "Lets ditch the timer and all those wacky accessories. Just 2 luts and a sequencer"
-   * "What good is that? You can't do much with 2x 2 input LUTs..."
-   * "No, but look, without all this junk, we could just run a third input to the LUT!"
-   * "Oh, great, throw it in and come over to review the timers we've found and pick the ones
-   * we want to use."
-   * "K - ah, where are we meeting?"
-   * "See those two large contraptions over there? Between those. The boss is pushing for the one
-   * on the left"
-   * "That monstrosity?! What the hell is it even?"
-   * "It was a t861's T1, then it was a PSC... now he calls it TCD...
-   * "I thought you said he wanted to keep it simple?
-   * "Wait till you see the TCE."
-   * "What good is that without a PLL? The PLL the TCD uses is pretty lame.
+  * One? Yup: The ATxmega32d4. Not the 32d3, nor the 32e5, nor anything else. All the xmega's have GPIORs
+  * and their headers list the GPIOn names too. But.... there is only a single header
+  * file with them not marked as "Deprecated". And that's the ATxmega32d4
+  * 24 of the 46 xmega parts with headers in the compiler packages (including the 32d3 and 32e5) had the
+  * 4 GPIOR's that we have, and had GPIOn and GPIO_GPIOn present but marked as deprecated.
+  * On those parts, these are at addresses 0x0000-0x003, and 0x0004-0x000F do not appear to be used.
+  * The other 22.... had THE ENTIRE FIRST HALF OF THE LOW I/O SPACE as GPIOR0-GPIORF!
+  * Which ones got all of them and which ones only got 4 seems to have been chosen in typical
+  * Atmel fashion (hint: it involved flipping a coin). No apparent pattern in time or other parameters.
+  * Either way, that left them with space for only 4 VPORT register sets (like the ones we got)
+  * These had to be configured to point to the desired port.
+  * I'm sure everyone is grateful for the fact that the folks designing the modern AVRs had their
+  * heads screwed on more securely than the xMega team and realized that 4 GPIOR-- excuse me, GPRs, 4 awkward VPORTs and
+  * a handful of unused addresses in the low I/O space was maybe not the best design decision made in the
+  * xmega line   *
+  * But regardless, the xmegas are not a rolemodel of success, even if they have their high points. They clearly know this at Microchip
+  * xMega appears to have been buried in a shallow grave shortly after Microchip showed up
+  *
+  * If you look at their latest upcoming products, it's clear that they've been doing this to more peripherals. The EB-series for example, pulls in the
+  * other monster of a timer that the characters above refer to, changing it's name to TCE - it's not mixed up with all the async crap of TCD,
+  * but it adds at least as much complexity, including a lot of similar features, as well as a simpler "TCF". I'm not sure if the TCF was a refurbished
+  * pull from their scrapyard, or a de-novo utility timer written for these parts to address some of the shortcomings in their PWM capabilities. And to
+  * find something else to do with that epic PLL.
+  *
+  * They needed act with a sense of urgency, as Atmel had taken their eye off the eight ball, and possibly balls 0x9 to 0xF too - classic AVR was stagnant, but xMega was
+  * not getting the kind of market penetration they'd hoped and expected), the final classic AVRs were the PB's on the mega side, which got "cut off" at the
+  * 324pb - likely a hard deadline for "no more classics after xx/yy/zzzz" was reached. The final tinies, the 841/441/1634/828 (the final four) generally showed
+  * visible symptoms of time pressure - subtle on the x41 (the most obvious being unused registers addresses in the low I/O while PUEx is marooned in the extended I/O
+  * instead of the low I/O like the other two parts did), clearly visible on the 1634, and so astonishingly, agonizingly debilitating to the 828 that
+  * I'm surprised they bothered to release it at all (it's crown jewel was the 28-input ADC... but the datasheet was clearly hastily redacted to omit
+  * any mention of having a differential ADC, and to add insult to injury, it's got a lame pin (sinks a few ma when WDT isn't on, yeah, wtf?) - and
+  * to add further injury to the insult, that pin happens to be the SCL pin.......
+  *
+  * If chip designs are cars, I'm imagining these designers in a lot full of old weatherbeaten devices, scrounging for peripherals to soup up is nes
+  * "AVRxm" chip they were working on.
+  * "Hey how bout this CCL doohickey?"
+  * "Too complicated, boss said simplifying the product line! Look at all this crap, what the hell were we thinking combining the CCL and timers?!"
+  * "Lets ditch the timer and all those wacky accessories. Just 2 luts and a sequencer"
+  * "What good is that? You can't do much with 2x 2 input LUTs..."
+  * "No, but look, without all this junk, we could just run a third input to the LUT!"
+  * "Oh, great, throw it in and come over to review the timers we've found and pick the ones
+  * we want to use."
+  * "K - ah, where are we meeting?"
+  * "See those two large contraptions over there? Between those. The boss is pushing for the one
+  * on the left"
+  * "That monstrosity?! What the hell is it even?"
+  * "It was a t861's T1, then it was a PSC... now he calls it TCD...
+  * "I thought you said he wanted to keep it simple?
+  * "Wait till you see the TCE."
+  * "What good is that without a PLL? The PLL the TCD uses is pretty lame.
 
-   */
+  */
   #if !defined(GPIOR0)
     #define GPIOR0                            (_SFR_MEM8(0x001C))
     #define GPIOR1                            (_SFR_MEM8(0x001D))
@@ -2294,15 +2294,15 @@ has once worked for the same thing as meaning that thing */
     #define GPR_GPR2                          (_SFR_MEM8(0x001E))
     #define GPR_GPR3                          (_SFR_MEM8(0x001F))
   #endif
- // Most people who know what they are call them GPIORs
+  // Most people who know what they are call them GPIORs
 
 
   #if defined (CLKCTRL_SELHF_bm)
     /* They changed the damned name for DB after selling the part for 6 months! What was this incredibly
-     * important change? Changing CRYSTAL to XTAL! That's it!
-     * Annoyingly you can't even test if it's using the new version of the headers because it's an enum!
-     * BUT IT GETS WORSE! On EA, it's back to CRYSTAL!!! ARE YOU SERIOUS?
-     */
+    * important change? Changing CRYSTAL to XTAL! That's it!
+    * Annoyingly you can't even test if it's using the new version of the headers because it's an enum!
+    * BUT IT GETS WORSE! On EA, it's back to CRYSTAL!!! ARE YOU SERIOUS?
+    */
     #if !defined(__AVR_EA__)
       #define CLKCTRL_SELHF_CRYSTAL_gc CLKCTRL_SELHF_XTAL_gc
     #else
@@ -2397,8 +2397,8 @@ has once worked for the same thing as meaning that thing */
     #define CLKCTRL_PDIV_64X_gc CLKCTRL_PDIV_DIV64_gc
   #endif
   /* Add a feature - yay!
-   * Rename registers so people can't carry code back and forth - booo!
-   */
+  * Rename registers so people can't carry code back and forth - booo!
+  */
   // Apparently this was backported to Dx too, so all parts need this one, not just EB/EA
   #if 1
     #define CCL_INSEL0_IN0_gc CCL_INSEL0_IO_gc
@@ -5341,7 +5341,7 @@ has once worked for the same thing as meaning that thing */
     #define TWI_ADDRMASK6_bp TWI_ADDRMASK_6_bp //Deprecated as of Q2 2022 header change.
   #endif
   /* ======= USART ======= */
-// USART_RS485_0_bm omitted. This is not an
+  // USART_RS485_0_bm omitted. This is not an
   #if !defined(USART_RS485_0_bm) && defined(USART_RS4850_bm)
     #define USART_RXMODE_0_bm USART_RXMODE0_bm
   #elif defined(USART_RS485_0_bm) && defined(USART_RS4850_bm)
@@ -5607,7 +5607,7 @@ has once worked for the same thing as meaning that thing */
   #elif defined(USART_RXPL_6_bp)
     #define USART_RXPL6_bp USART_RXPL_6_bp //Deprecated as of Q2 2022 header change.
   #endif
-/* VPORT.INTFLAGS */
+  /* VPORT.INTFLAGS */
   #if !defined(VPORT_INT_0_bm) && defined(VPORT_INT0_bm)
     #define VPORT_INT_0_bm VPORT_INT0_bm
   #elif defined(VPORT_INT_0_bm)
@@ -5821,8 +5821,8 @@ has once worked for the same thing as meaning that thing */
   #elif defined(ZCD_INTMODE_1_bp)
     #define ZCD_INTMODE1_bp ZCD_INTMODE_1_bp; //Deprecated as of Q2 2022 header change
   #endif
-/* EA-series - There was absolutely positively no reason to change the name of these bitfields. Someone ought to be slapped upside the head for this!
- * And they're enums so we can't even test for the damned things
- */
+  /* EA-series - There was absolutely positively no reason to change the name of these bitfields. Someone ought to be slapped upside the head for this!
+  * And they're enums so we can't even test for the damned things
+  */
 #endif /* this is the end of the backwards compatibility defines */
 #endif // end of core_devices

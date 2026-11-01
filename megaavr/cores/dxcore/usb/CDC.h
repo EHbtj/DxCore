@@ -19,9 +19,9 @@ namespace USB_NAMESPACE {
   bool is_busy();
   bool is_recv_ready();
   bool is_send_ready();
-  Interface_State* get_state();
-  LineState_t& get_line_state();
-  LineEncoding_t& get_line_encoding();
+  Interface_State *get_state();
+  LineState_t &get_line_state();
+  LineEncoding_t &get_line_encoding();
   uint16_t get_frame();
   size_t write_byte(uint8_t value);
   size_t write_available();
@@ -29,7 +29,7 @@ namespace USB_NAMESPACE {
   size_t read_available();
   int read_byte();
   int peek_byte();
-  void send_serialstate(SerialState_t& state);
+  void send_serialstate(SerialState_t &state);
   void bus_attach();
   void bus_detach();
   void bus_reset();

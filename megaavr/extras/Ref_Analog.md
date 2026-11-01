@@ -34,13 +34,13 @@ Ext = External Reference
 There is one difference between how the parts with the new Ex-series ADC, and the Dx-series one.
 
 On parts with true differential ADC (the Ex and 2-series), when making diffferential measurements, the analog voltage requirement is:
-```
+```text
 -0.1V <= Vin <= (Vdd + 0.1)
 ```
 
 On the parts without the new ADC, if they do have a differential mode, the analog voltage requirement is:
 
-```
+```text
 0V <= Vin <= Vref <= (Vdd - 0.4)
 ```
 

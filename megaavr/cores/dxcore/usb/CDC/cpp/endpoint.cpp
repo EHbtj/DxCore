@@ -26,13 +26,19 @@ namespace USB_NAMESPACE {
   alignas(2) NOINIT USB_EP_TABLE_t EP_TABLE;
   alignas(2) NOINIT USB_WM_TABLE_t EP_BUFFER;
 
-  WEAK USB_EP_TABLE_t* get_endpointer_ptr (void) { return &EP_TABLE; }
-  WEAK USB_WM_TABLE_t* get_workmem_ptr (void) { return &EP_BUFFER; }
+  WEAK USB_EP_TABLE_t *get_endpointer_ptr(void) {
+    return &EP_TABLE;
+  }
+  WEAK USB_WM_TABLE_t *get_workmem_ptr(void) {
+    return &EP_BUFFER;
+  }
 
   /* Returns the USB frame number. */
-  uint16_t get_frame (void) { return EP_TABLE.FRAMENUM & 0x7FF; }
+  uint16_t get_frame(void) {
+    return EP_TABLE.FRAMENUM & 0x7FF;
+  }
 
-  WEAK void ep_setup_clear (void) {
+  WEAK void ep_setup_clear(void) {
     memset(&EP_TABLE, 0, sizeof(EP_TABLE));
     USB0_ADDR = 0;
     USB0_FIFOWP = 0;
@@ -50,19 +56,19 @@ namespace USB_NAMESPACE {
     USB_EP_RES.STATUS = USB_BUSNAK_bm;
   }
 
-  WEAK void ep_setup_in_listen (void) {
+  WEAK void ep_setup_in_listen(void) {
     USB_EP_RES.MCNT = 0;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
     USB_EP_STATUS_CLR(USB_EP_SETUP_IN) = ~USB_TOGGLE_bm;
   }
 
-  WEAK void ep_setup_out_listen (void) {
+  WEAK void ep_setup_out_listen(void) {
     USB_EP_REQ.CNT = 0;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
     USB_EP_STATUS_CLR(USB_EP_SETUP_OUT) = ~USB_TOGGLE_bm;
   }
 
-  WEAK void ep_setup_stalled (void) {
+  WEAK void ep_setup_stalled(void) {
     USB_EP_REQ.CTRL |= USB_DOSTALL_bm;
     USB_EP_RES.CTRL |= USB_DOSTALL_bm;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);

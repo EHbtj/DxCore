@@ -28,7 +28,7 @@
 
 // MARK: Work space
 
-namespace /* NAMELESS */ {
+namespace { /* NAMELESS */
   USED RODATA const uint8_t _usage[] =
     "euboot " __QUOTE(FW_MAJOR) "." __QUOTE(FW_MINOR) "." __QUOTE(FW_REL);
 
@@ -65,13 +65,13 @@ namespace /* NAMELESS */ {
 /* Provides an SPM snippet compatible with bootloaders 3.71. */
 
 __attribute__((used))
-int main (void);
+int main(void);
 
 __attribute__((used))
-__attribute__((section (".trampolines")))
-void nvm_cmd (uint8_t /* _nvm_cmd */) {
+__attribute__((section(".trampolines")))
+void nvm_cmd(uint8_t /* _nvm_cmd */) {
   /* R24 <- _nvm_cmd */
-  __asm__ __volatile__ (
+  __asm__ __volatile__(
     R"#ASM#(
       1:  LDS   R25, %0
           ANDI  R25, 3
@@ -82,8 +82,8 @@ void nvm_cmd (uint8_t /* _nvm_cmd */) {
           OUT   0x34, R25
           STS   %1, R24
     )#ASM#"
-    :: "p" (_SFR_MEM_ADDR(NVMCTRL_STATUS))
-    ,  "p" (_SFR_MEM_ADDR(NVMCTRL_CTRLA))
+    :: "p"(_SFR_MEM_ADDR(NVMCTRL_STATUS))
+    ,  "p"(_SFR_MEM_ADDR(NVMCTRL_CTRLA))
     : "r25"
   );
 }
@@ -92,9 +92,9 @@ __attribute__((used))
 __attribute__((naked))
 __attribute__((noinline))
 __attribute__((noreturn))
-__attribute__((section (".vectors")))
-void vectors (void) {
-  __asm__ __volatile__ (
+__attribute__((section(".vectors")))
+void vectors(void) {
+  __asm__ __volatile__(
     R"#ASM#(
       RJMP  main      ; $0000
       ST    Z+, R22   ; $0002 nvm_stz
@@ -110,7 +110,7 @@ void vectors (void) {
 
 // MARK: main function
 
-int main (void) {
+int main(void) {
 
   /*** Startup Section ***/
 
@@ -119,17 +119,19 @@ int main (void) {
      interrupts are disabled and SP points to RAMEND. */
 
   /* Known-zero required by avr-libc. */
-  __asm__ __volatile__ ( "CLR __zero_reg__" );
+  __asm__ __volatile__("CLR __zero_reg__");
 
   GPR_GPR0 = RSTCTRL_RSTFR; /* get reset cause */
   RSTCTRL_RSTFR = GPR_GPR0; /* clear flags */
 
   /* Read the word value at the top of the stack. */
   /* Normally, this should be non-zero.           */
-  bool _spt = bit_is_set(GPR_GPR0, RSTCTRL_SWRF_bp) && *(uint16_t*)(RAMEND - 1) == 0;
+  bool _spt = bit_is_set(GPR_GPR0, RSTCTRL_SWRF_bp) && *(uint16_t *)(RAMEND - 1) == 0;
 
   /* Perform a software reset if GPR is zero */
-  if (GPR_GPR0 == 0) _PROTECTED_WRITE(RSTCTRL_SWRR, 1);
+  if (GPR_GPR0 == 0) {
+    _PROTECTED_WRITE(RSTCTRL_SWRR, 1);
+  }
   if (GPR_GPR0 == RSTCTRL_PORF_bm) {
     _spt = true;
     pinControlRegister(PIN_SYS_SW0) = PORT_PULLUPEN_bm;
@@ -147,7 +149,7 @@ int main (void) {
 
   /* WDT restart causes user code to execute */
   if (bit_is_set(GPR_GPR0, RSTCTRL_WDRF_bp) || !_spt) {
-    __asm__ __volatile__ ( "IJMP" :: "z" (_bootsize / 2) );
+    __asm__ __volatile__("IJMP" :: "z"(_bootsize / 2));
   }
 
   /*** This is where the actual processing begins. ***/
@@ -158,11 +160,11 @@ int main (void) {
   pinMode(PIN_SYS_LED0, OUTPUT);
 
   /* Initialize USB peripherals after allowing sufficient stabilization time */
-#if PIN_SYS_LED0 != PIN_PF2
+  #if PIN_SYS_LED0 != PIN_PF2
   digitalWriteMacro(PIN_SYS_LED0, TOGGLE);
-#endif
+  #endif
 
-#if defined(DEBUG)
+  #if defined(DEBUG)
   Serial.begin(CONSOLE_BAUD);
   delay_millis(600);
   D1PRINTF("\n<startup>\r\n");
@@ -171,7 +173,7 @@ int main (void) {
   D1PRINTF("__AVR_ARCH__ = %d\r\n", __AVR_ARCH__);
   D1PRINTF("BOOTSIZE = %d, 0x%04X\r\n", FUSE_BOOTSIZE, _bootsize);
   DFLUSH();
-#endif
+  #endif
 
   _led_next = 0b11000000;
   _led_mask = 0;
@@ -195,26 +197,39 @@ int main (void) {
   DFLUSH();
   while (true) {
     DFLUSH();
-    if (bit_is_clear(GPCONF, GPCONF_FAIL_bp)) wdt_reset();
+    if (bit_is_clear(GPCONF, GPCONF_FAIL_bp)) {
+      wdt_reset();
+    }
 
     if (bit_is_set(TCA0_SINGLE_INTFLAGS, TCA_SINGLE_CMP0_bp)) {
       bit_set(TCA0_SINGLE_INTFLAGS, TCA_SINGLE_CMP0_bp);
-      if (_led_mask) _led_mask >>= 1;
-      else {
+      if (_led_mask) {
+        _led_mask >>= 1;
+      } else {
         _led_bits = _led_next;
         _led_mask = 0x80;
       }
-      if (_led_bits & _led_mask) digitalWriteMacro(PIN_SYS_LED0, TOGGLE);
+      if (_led_bits & _led_mask) {
+        digitalWriteMacro(PIN_SYS_LED0, TOGGLE);
+      }
     }
 
     USB::handling_bus_events();
-    if (USB::is_ep_setup()) USB::handling_control_transactions();
+    if (USB::is_ep_setup()) {
+      USB::handling_control_transactions();
+    }
 
-    if (bit_is_clear(GPCONF, GPCONF_USB_bp)) continue;
+    if (bit_is_clear(GPCONF, GPCONF_USB_bp)) {
+      continue;
+    }
 
-    if (USB::is_not_dap()) continue;
+    if (USB::is_not_dap()) {
+      continue;
+    }
 
-    if (JTAG::dap_command_check()) JTAG::jtag_scope_branch();
+    if (JTAG::dap_command_check()) {
+      JTAG::jtag_scope_branch();
+    }
   }
 }
 

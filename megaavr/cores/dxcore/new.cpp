@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 // For C++11, only need the following:
-void *operator new  (size_t size) {
+void *operator new (size_t size) {
   return malloc(size);
 }
 
@@ -37,20 +37,20 @@ void *operator new[](size_t size) {
   return malloc(size);
 }
 
-void  operator delete  (void * ptr) {
+void  operator delete (void *ptr) {
   free(ptr);
 }
 
-void  operator delete[](void * ptr) {
+void  operator delete[](void *ptr) {
   free(ptr);
 }
 
-void * operator new  (size_t size, void * ptr) noexcept {
+void *operator new (size_t size, void *ptr) noexcept {
   (void)size;
   return ptr;
 }
 
-void * operator new[](size_t size, void * ptr) noexcept {
+void *operator new[](size_t size, void *ptr) noexcept {
   (void)size;
   return ptr;
 }
@@ -58,14 +58,14 @@ void * operator new[](size_t size, void * ptr) noexcept {
 // Since C++14, also need two more delete variants...
 // Note thnat this CAN break code that compiled amd worked in C++11.
 #if (__cpp_sized_deallocation >= 201309L)
-  void  operator delete  (void* ptr, size_t size) noexcept {
-    (void) size;
-    free(ptr);
-  }
-  void  operator delete[](void* ptr, size_t size) noexcept {
-    (void) size;
-    free(ptr);
-  }
+void  operator delete (void *ptr, size_t size) noexcept {
+  (void) size;
+  free(ptr);
+}
+void  operator delete[](void *ptr, size_t size) noexcept {
+  (void) size;
+  free(ptr);
+}
 #endif
 
 // Since C++17, there's four more each for new / delete, to support allocation
@@ -73,17 +73,17 @@ void * operator new[](size_t size, void * ptr) noexcept {
 // Almost the entirety of AVR is using C++ 11. Any code that works elsewhere, but NOT on these cores and give these error messages either
 // is trying to get alignment that it doesn't actually need, or is - by sheet luck - ending up with the addresses which worked. E
 #if (__cpp_aligned_new >= 201606L)
-  #if !defined(LTODISABLED)
-  void badAlloc(const char*) __attribute__((error("")));
-  #endif
+#if !defined(LTODISABLED)
+  void badAlloc(const char *) __attribute__((error("")));
+#endif
 
-  void* operator new  (size_t size, std::align_val_t al) {
-    #if !defined(LTODISABLED)
-      badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
-    #endif
-    (void) al;
-    return malloc(size);
-  }
+void *operator new (size_t size, std::align_val_t al) {
+  #if !defined(LTODISABLED)
+  badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
+  #endif
+  (void) al;
+  return malloc(size);
+}
 
 /*
 void* operator new  (size_t size, std::align_val_t al) {
@@ -116,65 +116,65 @@ void* operator new  (size_t size, std::align_val_t al) {
 }
 */
 
-  void* operator new[](size_t size, std::align_val_t al) {
-    #if !defined(LTODISABLED)
-      badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
-    #endif
-    (void) al;
-    return malloc(size);
-  }
-  void  operator delete  (void* ptr, std::align_val_t al) noexcept {
-    #if !defined(LTODISABLED)
-      badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
-    #endif
-    (void) al;
-    free(ptr);
-  }
-  /*
-  void operator delete (void* ptr, std::align_val_t al) noexcept {
+void *operator new[](size_t size, std::align_val_t al) {
+  #if !defined(LTODISABLED)
+  badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
+  #endif
+  (void) al;
+  return malloc(size);
+}
+void  operator delete (void *ptr, std::align_val_t al) noexcept {
+  #if !defined(LTODISABLED)
+  badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
+  #endif
+  (void) al;
+  free(ptr);
+}
+/*
+void operator delete (void* ptr, std::align_val_t al) noexcept {
 
-    if (al <= STDCPP_DEFAULT_NEW_ALIGNMENT) {
-        free(ptr);
-        return;
-    }
+  if (al <= STDCPP_DEFAULT_NEW_ALIGNMENT) {
+      free(ptr);
+      return;
+  }
 
-    // Get the original pointer value from just prior to the provided pointer.
-    uintptr_t aligned = ptr;
-    uintptr_t tmp = aligned - sizeof(uintptr_t); // go back 2 bytes
-    uintptr_t original = *((uintptr_t *)tmp); // extract the original pointer
+  // Get the original pointer value from just prior to the provided pointer.
+  uintptr_t aligned = ptr;
+  uintptr_t tmp = aligned - sizeof(uintptr_t); // go back 2 bytes
+  uintptr_t original = *((uintptr_t *)tmp); // extract the original pointer
 
-    // sanity check the original value... for iot, infinite loop recommended
-    // as it's better than memory corruption!rhy
-    size_t overhead = (al - STDCPP_DEFAULT_NEW_ALIGNMENT) + sizeof(uintptr_t);
-    assert(original < aligned);
-    assert(original + overhead <= aligned);
+  // sanity check the original value... for iot, infinite loop recommended
+  // as it's better than memory corruption!rhy
+  size_t overhead = (al - STDCPP_DEFAULT_NEW_ALIGNMENT) + sizeof(uintptr_t);
+  assert(original < aligned);
+  assert(original + overhead <= aligned);
 
-    // and finally free the original memory
-    free(original);
-  }
-  */
-  void  operator delete[](void* ptr, std::align_val_t al) noexcept {
-    #if !defined(LTODISABLED)
-      badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
-    #endif
-    (void) al;
-    free(ptr);
-  }
-  void  operator delete  (void* ptr, size_t size, std::align_val_t al) noexcept{
-    #if !defined(LTODISABLED)
-      badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
-    #endif
-    (void) al;
-    (void) size;
-    free(ptr);
-  }
-  void  operator delete[](void* ptr, size_t size, std::align_val_t al) noexcept {
-    #if !defined(LTODISABLED)
-      badAlloc("Overaligned allocation/deallocation is a C++ 17 feature, and is not supported by this or other AVR cores at this point in time");
-    #endif
-    (void) al;
-    (void) size;
-    free(ptr);
-  }
+  // and finally free the original memory
+  free(original);
+}
+*/
+void  operator delete[](void *ptr, std::align_val_t al) noexcept {
+  #if !defined(LTODISABLED)
+  badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
+  #endif
+  (void) al;
+  free(ptr);
+}
+void  operator delete (void *ptr, size_t size, std::align_val_t al) noexcept {
+  #if !defined(LTODISABLED)
+  badAlloc("Alignment aware new/delete operators, a C++ 17 feaure, are not supported by this core or any other AVR cores at this point in time");
+  #endif
+  (void) al;
+  (void) size;
+  free(ptr);
+}
+void  operator delete[](void *ptr, size_t size, std::align_val_t al) noexcept {
+  #if !defined(LTODISABLED)
+  badAlloc("Overaligned allocation/deallocation is a C++ 17 feature, and is not supported by this or other AVR cores at this point in time");
+  #endif
+  (void) al;
+  (void) size;
+  free(ptr);
+}
 
 #endif

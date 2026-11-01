@@ -35,7 +35,7 @@
 
 namespace USB {
 
-  // MARK: Descroptor
+  // MARK: Descriptor
 
   const wchar_t PROGMEM mstring[] = L"euboot:CMSIS-DAP:EDBG";
 
@@ -68,84 +68,94 @@ namespace USB {
   };
 
   const EP_TABLE_t PROGMEM ep_init = {
-    { /* EP */
-      { /* EP_REQ */
-        { 0,
+    {
+      /* EP */
+      {
+        /* EP_REQ */
+        {
+          0,
           USB_TYPE_CONTROL_gc                                 | USB_TCDSBL_bm | USB_BUFSIZE_DEFAULT_BUF64_gc,
-          0, (uint16_t)&EP_MEM.req_data, 0 },
+          0, (uint16_t) &EP_MEM.req_data, 0
+        },
         /* EP_RES */
-        { 0,
+        {
+          0,
           USB_TYPE_CONTROL_gc | USB_MULTIPKT_bm | USB_AZLP_bm | USB_TCDSBL_bm | USB_BUFSIZE_DEFAULT_BUF64_gc,
-          0, (uint16_t)&EP_MEM.res_data, 0 },
+          0, (uint16_t) &EP_MEM.res_data, 0
+        },
       },
-      { /* EP_DPI */
+      {
+        /* EP_DPI */
         { /* not used */ },
-        { 0,
+        {
+          0,
           USB_TYPE_BULKINT_gc | USB_MULTIPKT_bm | USB_AZLP_bm | USB_TCDSBL_bm | USB_BUFSIZE_DEFAULT_BUF64_gc,
-          64, (uint16_t)&EP_MEM.dap_data, 0 },
+          64, (uint16_t) &EP_MEM.dap_data, 0
+        },
       },
-      { /* EP_DPO */
-        { 0,
+      {
+        /* EP_DPO */
+        {
+          0,
           USB_TYPE_BULKINT_gc                                 | USB_TCDSBL_bm | USB_BUFSIZE_DEFAULT_BUF64_gc,
-          0, (uint16_t)&EP_MEM.dap_data, 64 },
+          0, (uint16_t) &EP_MEM.dap_data, 64
+        },
         { /* not used */ },
       },
     },
   };
 
-  size_t get_descriptor (uint8_t* _buffer, uint16_t _index) {
-    uint8_t* _pgmem = 0;
+  size_t get_descriptor(uint8_t *_buffer, uint16_t _index) {
+    uint8_t *_pgmem = 0;
     size_t   _size = 0;
     uint8_t  _type = _index >> 8;
     if (_type == 0x01) {          /* DEVICE */
-      _pgmem = (uint8_t*)&device_descriptor;
+      _pgmem = (uint8_t *)&device_descriptor;
       _size = sizeof(device_descriptor);
       memcpy_P(_buffer, _pgmem, _size);
       D1PRINTF(" VID:PID=%04X:%04X\r\n", _CAPS16(_buffer[8])->word, _CAPS16(_buffer[10])->word);
       return _size;
-    }
-    else if (_type == 0x02) {     /* CONFIGURATION */
-      _pgmem = (uint8_t*)&current_descriptor;
+    } else if (_type == 0x02) {   /* CONFIGURATION */
+      _pgmem = (uint8_t *)&current_descriptor;
       _size = sizeof(current_descriptor);
-    }
-    else if (_type == 0x06) {     /* QUALIFIER */
-      _pgmem = (uint8_t*)&qualifier_descriptor;
+    } else if (_type == 0x06) {   /* QUALIFIER */
+      _pgmem = (uint8_t *)&qualifier_descriptor;
       _size = sizeof(qualifier_descriptor);
-    }
-    else if (_type == 0x21) {     /* HID */
-      _pgmem = (uint8_t*)&current_descriptor + 18;
+    } else if (_type == 0x21) {   /* HID */
+      _pgmem = (uint8_t *)&current_descriptor + 18;
       _size = 9;
-    }
-    else if (_type == 0x22) {     /* REPORT */
-      _pgmem = (uint8_t*)&report_descriptor;
+    } else if (_type == 0x22) {   /* REPORT */
+      _pgmem = (uint8_t *)&report_descriptor;
       _size = sizeof(report_descriptor);
-    }
-    else if (_index == 0x0300) {  /* LANGUAGE */
+    } else if (_index == 0x0300) { /* LANGUAGE */
       _size = 4;
       *_buffer++ = 4;
       *_buffer++ = 3;
       *_buffer++ = 0x09;
       *_buffer++ = 0x04;
       return _size;
-    }
-    else {
+    } else {
       switch (_index) {
         case 0x0302:
         case 0x0303:
-          _pgmem = (uint8_t*)&mstring;
+          _pgmem = (uint8_t *)&mstring;
           _size = sizeof(mstring);
           break;
       }
       *_buffer++ = (uint8_t)_size;
       *_buffer++ = 3;
-      if (_size) memcpy_P(_buffer, _pgmem, _size - 2);
+      if (_size) {
+        memcpy_P(_buffer, _pgmem, _size - 2);
+      }
       return _size;
     }
-    if (_size) memcpy_P(_buffer, _pgmem, _size);
+    if (_size) {
+      memcpy_P(_buffer, _pgmem, _size);
+    }
     return _size;
   }
 
-  void setup_device (bool _force) {
+  void setup_device(bool _force) {
     USB0_ADDR = 0;
     if (USB0_CTRLA || _force) {
       USB0_CTRLA = 0;
@@ -161,39 +171,51 @@ namespace USB {
 
   // MARK: Endpoint
 
-  bool is_ep_setup (void) { return bit_is_set(EP_REQ.STATUS, USB_EPSETUP_bp); }
-  bool is_not_dap (void) { return bit_is_clear(EP_DPO.STATUS, USB_BUSNAK_bp); }
-  void ep_req_pending (void) { loop_until_bit_is_set(EP_REQ.STATUS, USB_BUSNAK_bp); }
-  void ep_res_pending (void) { loop_until_bit_is_set(EP_RES.STATUS, USB_BUSNAK_bp); }
-  void ep_dpi_pending (void) { loop_until_bit_is_set(EP_DPI.STATUS, USB_BUSNAK_bp); }
-  void ep_dpo_pending (void) { loop_until_bit_is_set(EP_DPO.STATUS, USB_BUSNAK_bp); }
+  bool is_ep_setup(void) {
+    return bit_is_set(EP_REQ.STATUS, USB_EPSETUP_bp);
+  }
+  bool is_not_dap(void) {
+    return bit_is_clear(EP_DPO.STATUS, USB_BUSNAK_bp);
+  }
+  void ep_req_pending(void) {
+    loop_until_bit_is_set(EP_REQ.STATUS, USB_BUSNAK_bp);
+  }
+  void ep_res_pending(void) {
+    loop_until_bit_is_set(EP_RES.STATUS, USB_BUSNAK_bp);
+  }
+  void ep_dpi_pending(void) {
+    loop_until_bit_is_set(EP_DPI.STATUS, USB_BUSNAK_bp);
+  }
+  void ep_dpo_pending(void) {
+    loop_until_bit_is_set(EP_DPO.STATUS, USB_BUSNAK_bp);
+  }
 
-  void ep_req_listen (void) {
+  void ep_req_listen(void) {
     EP_REQ.CNT = 0;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
     USB_EP_STATUS_CLR(USB_EP_REQ) = ~USB_TOGGLE_bm;
   }
 
-  void ep_res_listen (void) {
+  void ep_res_listen(void) {
     EP_RES.MCNT = 0;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
     USB_EP_STATUS_CLR(USB_EP_RES) = ~USB_TOGGLE_bm;
   }
 
-  void ep_dpi_listen (void) {
+  void ep_dpi_listen(void) {
     EP_DPI.CNT = 64;
     EP_DPI.MCNT = 0;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
     USB_EP_STATUS_CLR(USB_EP_DPI) = ~USB_TOGGLE_bm;
   }
 
-  void ep_dpo_listen (void) {
+  void ep_dpo_listen(void) {
     EP_DPO.CNT = 0;
     loop_until_bit_is_clear(USB0_INTFLAGSB, USB_RMWBUSY_bp);
     USB_EP_STATUS_CLR(USB_EP_DPO) = ~USB_TOGGLE_bm;
   }
 
-  void complete_dap_out (void) {
+  void complete_dap_out(void) {
     ep_dpi_listen();
     ep_dpo_listen();  /* continue transaction */
   }
@@ -201,15 +223,14 @@ namespace USB {
   // MARK: USB Session
 
   /*** USB Standard Request Enumeration. ***/
-  bool request_standard (void) {
+  bool request_standard(void) {
     bool _listen = true;
     uint8_t bRequest = EP_MEM.req_data.bRequest;
     if (bRequest == 0x00) {       /* GET_STATUS */
       EP_MEM.res_data[0] = 0;
       EP_MEM.res_data[1] = 0;
       EP_RES.CNT = 2;
-    }
-    else if (bRequest == 0x01) {  /* CLEAR_FEATURE */
+    } else if (bRequest == 0x01) { /* CLEAR_FEATURE */
       D1PRINTF(" CF=%02X:%02X\r\n", EP_MEM.req_data.wValue, EP_MEM.req_data.wIndex);
       if (0 == (uint8_t)EP_MEM.req_data.wValue) {
         /* Expects an endpoint number to be passed in. Swaps the high and low */
@@ -219,51 +240,43 @@ namespace USB {
         USB_EP_STATUS_CLR(_EP) = USB_STALLED_bm | USB_BUSNAK_bm | USB_TOGGLE_bm;
       }
       EP_RES.CNT = 0;
-    }
-    else if (bRequest == 0x04) {  /* SET_FEATURE */
+    } else if (bRequest == 0x04) { /* SET_FEATURE */
       /* If used, it will be ignored. */
       D1PRINTF(" SF=%02X:%02X\r\n", EP_MEM.req_data.wValue, EP_MEM.req_data.wIndex);
       EP_RES.CNT = 0;
-    }
-    else if (bRequest == 0x05) {  /* SET_ADDRESS */
+    } else if (bRequest == 0x05) { /* SET_ADDRESS */
       uint8_t _addr = EP_MEM.req_data.wValue & 0x7F;
       ep_res_listen();
       ep_res_pending();
       USB0_ADDR = _addr;
       D1PRINTF(" USB0_ADDR=%d\r\n", _addr);
       EP_RES.CNT = 0;
-    }
-    else if (bRequest == 0x06) {  /* GET_DESCRIPTOR */
+    } else if (bRequest == 0x06) { /* GET_DESCRIPTOR */
       size_t _length = EP_MEM.req_data.wLength;
-      size_t _size = get_descriptor((uint8_t*)&EP_MEM.res_data, EP_MEM.req_data.wValue);
+      size_t _size = get_descriptor((uint8_t *)&EP_MEM.res_data, EP_MEM.req_data.wValue);
       EP_RES.CNT = (_size > _length) ? _length : _size;
       _listen = !!_size;
-    }
-    else if (bRequest == 0x08) {  /* GET_CONFIGURATION */
+    } else if (bRequest == 0x08) { /* GET_CONFIGURATION */
       EP_MEM.res_data[0] = _set_config;
       D1PRINTF("<GC:%02X>\r\n", _set_config);
       EP_RES.CNT = 1;
-    }
-    else if (bRequest == 0x09) {  /* SET_CONFIGURATION */
+    } else if (bRequest == 0x09) { /* SET_CONFIGURATION */
       /* Once the USB connection is fully initiated, it will go through here. */
       _set_config = (uint8_t)EP_MEM.req_data.wValue;
       bit_set(GPCONF, GPCONF_USB_bp);
       _led_next = 0b11110000;
       D1PRINTF("<READY:%02X>\r\n", _set_config);
       EP_RES.CNT = 0;
-    }
-    else if (bRequest == 0x0A) {  /* GET_INTREFACE */
+    } else if (bRequest == 0x0A) { /* GET_INTREFACE */
       /* It seems not to be used. */
       D1PRINTF("<SI:0>\r\n");
       EP_MEM.res_data[0] = 0;
       EP_RES.CNT = 1;
-    }
-    else if (bRequest == 0x0B) {  /* SET_INTREFACE */
+    } else if (bRequest == 0x0B) { /* SET_INTREFACE */
       /* It seems not to be used. */
       D1PRINTF("<GI:%02X>\r\n", EP_MEM.req_data.wValue);
       EP_RES.CNT = 0;
-    }
-    else {
+    } else {
       D2PRINTF(" RQ=%02X\r\n", bRequest);
       _listen = false;
     }
@@ -271,7 +284,7 @@ namespace USB {
   }
 
   /*** class request processing. ***/
-  bool request_class (void) {
+  bool request_class(void) {
     bool _listen = true;
     uint8_t bRequest = EP_MEM.req_data.bRequest;
     if (bRequest == 0x0A) {       /* SET_IDLE */
@@ -279,8 +292,7 @@ namespace USB {
       /* It is called but not used. */
       D1PRINTF(" IDL=%02X\r\n", (uint8_t)EP_MEM.req_data.wValue);
       EP_RES.CNT = 0;
-    }
-    else {
+    } else {
       _listen = false;
     }
     return _listen;
@@ -289,19 +301,20 @@ namespace USB {
   /*** Accept the EP0 setup packet. ***/
   /* This process is equivalent to a endpoint interrupt. */
   /* The reason for using polling is to prioritize VCP performance. */
-  void handling_control_transactions (void) {
+  void handling_control_transactions(void) {
     bool _listen = false;
     uint8_t bmRequestType = EP_MEM.req_data.bmRequestType;
     D2PRINTF("RQ=%02X:%04X:%02X:%02X:%04X:%04X:%04X\r\n",
-      EP_REQ.STATUS, EP_REQ.CNT, EP_MEM.req_data.bmRequestType, EP_MEM.req_data.bRequest,
-      EP_MEM.req_data.wValue, EP_MEM.req_data.wIndex, EP_MEM.req_data.wLength);
+             EP_REQ.STATUS, EP_REQ.CNT, EP_MEM.req_data.bmRequestType, EP_MEM.req_data.bRequest,
+             EP_MEM.req_data.wValue, EP_MEM.req_data.wIndex, EP_MEM.req_data.wLength);
     /* Accepts subsequent EP0_DATA packets as needed. */
-    if (bit_is_clear(bmRequestType, 7)) ep_req_listen();
+    if (bit_is_clear(bmRequestType, 7)) {
+      ep_req_listen();
+    }
     bmRequestType &= (3 << 5);
     if (bmRequestType == (0 << 5)) {
       _listen = request_standard();
-    }
-    else if (bmRequestType == (1 << 5)) {
+    } else if (bmRequestType == (1 << 5)) {
       _listen = request_class();
     }
     if (_listen) {
@@ -314,7 +327,7 @@ namespace USB {
   /*** This process is equivalent to a bus interrupt. ***/
   /* The reason for using polling is to prioritize VCP performance. */
   /* The trade-off is that power standby is not available. */
-  void handling_bus_events (void) {
+  void handling_bus_events(void) {
     uint8_t busstate = USB0_INTFLAGSA;
     USB0_INTFLAGSA = busstate;
     // RESUME also occurs when Windows wakes an idle HID device. Preserve its

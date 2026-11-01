@@ -663,7 +663,7 @@ The maximum baud rate while operating as slave in synchronous mode is F_CPU / 4 
 |     57600 |             Common | Often used to upload to 8 MHz classic AVRs (a bad choice) |
 |     76800 |               Rare | A standard speed, but not commonly used.  This is what <br/> people SHOULD bootload classic 16 MHz AVRs at |
 |    115200 |        Very Common | Most common modern bootloader speed, Great default now  |
-|    153600 |               Rare |
+|    153600 |               Rare | |
 |    172800 |          Unheardof | You would expect this - but its not actually used anywhere |
 |    230400 |           Uncommon | The first non-exotic speed higher than 115200           |
 |    256000 |            V. Rare |  Looka like the math would be easy. Nope. Not really.   |

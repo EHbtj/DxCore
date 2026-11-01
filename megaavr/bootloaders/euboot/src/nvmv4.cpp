@@ -65,37 +65,34 @@ namespace NVM::V4 {
   /* RAMPZ is not used because the flash memory of the AVR-DU series is a   */
   /* maximum of 64KiB, so pointers in the code area are limited to 16 bits. */
 
-  size_t read_memory (void) {
+  size_t read_memory(void) {
     uint8_t   m_type = packet.out.bMType;
     uint16_t _dwAddr = packet.out.dwAddr;     /* The high-order word is ignored. */
     size_t  _wLength = packet.out.dwLength;
     if (m_type == 0xD3) {
       /* MTYPE_SIB */
       memcpy_P(&packet.in.data[0], &_sib, _wLength);
-    }
-    else if (m_type == 0xB0 || m_type == 0xC0) {
+    } else if (m_type == 0xB0 || m_type == 0xC0) {
       /* MTYPE_FLASH_PAGE (PROGMEM) */
-      memcpy_P(&packet.in.data[0], (void*)_dwAddr, _wLength);
-    }
-    else {
-      memcpy(&packet.in.data[0], (void*)_dwAddr, _wLength);
+      memcpy_P(&packet.in.data[0], (void *)_dwAddr, _wLength);
+    } else {
+      memcpy(&packet.in.data[0], (void *)_dwAddr, _wLength);
     }
     return _wLength + 1;
   }
 
-  void set_flmap (uint16_t &_dwAddr) {
+  void set_flmap(uint16_t &_dwAddr) {
     if (_dwAddr & 0x8000) {
       GPR_GPR0 = NVMCTRL_FLMAP_SECTION1_gc;
-    }
-    else {
+    } else {
       GPR_GPR0 = NVMCTRL_FLMAP_SECTION0_gc;
       _dwAddr |= 0x8000;
     }
     _PROTECTED_WRITE(NVMCTRL_CTRLB, GPR_GPR0);
   }
 
-  size_t erase_memory (void) {
-  #ifdef __No_implementation_required__
+  size_t erase_memory(void) {
+    #ifdef __No_implementation_required__
     /* Chip erasure is not possible. */
     /* Page erasure is not necessary outside of terminal mode. */
     uint8_t e_type = packet.out.bEType;
@@ -108,21 +105,23 @@ namespace NVM::V4 {
     if (e_type == 0x07) {
       /* XMEGA_ERASE_USERSIG */
       nvm_cmd(NVMCTRL_CMD_FLPER_gc);
-      *((uint8_t*)_dwAddr) = 0;
+      *((uint8_t *)_dwAddr) = 0;
       nvm_cmd(NVMCTRL_CMD_FLWR_gc);
     }
-  #endif
+    #endif
     return 1;
   }
 
-  size_t write_memory (void) {
+  size_t write_memory(void) {
     uint8_t   m_type = packet.out.bMType;
     uint16_t _dwAddr = packet.out.dwAddr;     /* The high-order word is ignored. */
     size_t  _wLength = packet.out.dwLength;
     DFLUSH();
     if (m_type == 0xB0) {
       /* MTYPE_FLASH_PAGE (PROGMEM) */
-      if (_dwAddr < _bootsize) return 1;
+      if (_dwAddr < _bootsize) {
+        return 1;
+      }
       set_flmap(_dwAddr);
       m_type = 0xC0;
     }
@@ -131,16 +130,15 @@ namespace NVM::V4 {
       /* MTYPE_EEPROM */
       /* MTYPE_EEPROM_XMEGA */
       nvm_cmd(NVMCTRL_CMD_EEERWR_gc);
-    }
-    else if (m_type == 0xC0 || m_type == 0xC5) {
+    } else if (m_type == 0xC0 || m_type == 0xC5) {
       /* MTYPE_FLASH (alias) */
       /* MTYPE_USERSIG (USERROW, BOOTROW) */
       nvm_cmd(NVMCTRL_CMD_FLPER_gc);
-      *((uint8_t*)_dwAddr) = 0;
+      *((uint8_t *)_dwAddr) = 0;
       nvm_cmd(NVMCTRL_CMD_FLWR_gc);
     }
 
-    memcpy((void*)_dwAddr, &packet.out.memData[0], _wLength);
+    memcpy((void *)_dwAddr, &packet.out.memData[0], _wLength);
     nvm_cmd(NVMCTRL_CMD_NONE_gc);
 
     return 1;
@@ -149,7 +147,7 @@ namespace NVM::V4 {
   // MARK: JTAG SCOPE
 
   /* ARCH=UPDI scope Provides functionality. */
-  size_t jtag_scope_updi (void) {
+  size_t jtag_scope_updi(void) {
     size_t _rspsize = 0;
     uint8_t _cmd = packet.out.cmd;
     if (_cmd == 0x10) {             /* CMD3_SIGN_ON */
@@ -157,38 +155,32 @@ namespace NVM::V4 {
       memcpy_P(&packet.in.data[0], &_sib[0], 4);
       packet.in.res = 0x84;         /* RSP3_DATA */
       return 5;
-    }
-    else if (_cmd == 0x11) {        /* CMD3_SIGN_OFF */
+    } else if (_cmd == 0x11) {      /* CMD3_SIGN_OFF */
       D1PRINTF(" UPDI_SIGN_OFF\r\n");
       /* If UPDI control has failed, RSP3_OK is always returned. */
       _rspsize = 1;
-    }
-    else if (_cmd == 0x15) {        /* CMD3_ENTER_PROGMODE */
+    } else if (_cmd == 0x15) {      /* CMD3_ENTER_PROGMODE */
       D1PRINTF(" UPDI_ENTER_PROG\r\n");
       /* On failure, RSP3_OK is returned if a UPDI connection is available. */
       _rspsize = 1;
-    }
-    else if (_cmd == 0x16) {        /* CMD3_LEAVE_PROGMODE */
+    } else if (_cmd == 0x16) {      /* CMD3_LEAVE_PROGMODE */
       D1PRINTF(" UPDI_LEAVE_PROG\r\n");
       /* There is nothing to do. */
       /* The actual termination process is delayed until CMD3_SIGN_OFF. */
       _rspsize = 1;
-    }
-    else if (_cmd == 0x20) {        /* CMD3_ERASE_MEMORY */
+    } else if (_cmd == 0x20) {      /* CMD3_ERASE_MEMORY */
       D1PRINTF(" UPDI_ERASE=%02X:%06lX\r\n",
-        packet.out.bEType, packet.out.dwPageAddr);
+               packet.out.bEType, packet.out.dwPageAddr);
       _rspsize = erase_memory();
-    }
-    else if (_cmd == 0x21) {        /* CMD3_READ_MEMORY */
+    } else if (_cmd == 0x21) {      /* CMD3_READ_MEMORY */
       D1PRINTF(" UPDI_READ=%02X:%06lX:%04X\r\n", packet.out.bMType,
-        packet.out.dwAddr, (size_t)packet.out.dwLength);
+               packet.out.dwAddr, (size_t)packet.out.dwLength);
       _rspsize = read_memory();
       packet.in.res = 0x184;        /* RSP3_DATA */
       return _rspsize;
-    }
-    else if (_cmd == 0x23) {        /* CMD3_WRITE_MEMORY */
+    } else if (_cmd == 0x23) {      /* CMD3_WRITE_MEMORY */
       D1PRINTF(" UPDI_WRITE=%02X:%06lX:%04X\r\n", packet.out.bMType,
-        packet.out.dwAddr, (size_t)packet.out.dwLength);
+               packet.out.dwAddr, (size_t)packet.out.dwLength);
       _rspsize = write_memory();
     }
     packet.in.res = _rspsize ? 0x80 : 0xA0;     /* RSP3_OK : RSP3_FAILED */

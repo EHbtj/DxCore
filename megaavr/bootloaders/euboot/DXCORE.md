@@ -18,6 +18,10 @@ one Windows / Arduino IDE 2.x setup. These observations do not isolate which
 change resolved the initial disconnect; sleep/resume and stress/recovery tests
 remain outstanding. See ../../extras/Ref_USB.md for the validation record.
 
+Local sources also follow DxCore's AStyle 3.1 formatting rules. After formatting
+and comment spelling corrections, all nine local images were rebuilt and matched
+the distributed HEX payloads byte for byte; their source manifests were refreshed.
+
 The Intel HEX blob matches upstream Git blob
 9abf09a11cda4b84f36048df285749b5a50569ad.
 Its LF-normalized file SHA-256 is

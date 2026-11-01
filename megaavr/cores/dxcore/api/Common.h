@@ -41,10 +41,10 @@ void yield(void);
 
 #ifndef constrain
 #define constrain(x,low,high)   ({  \
-  __typeof__ (x)    _x = (x);           \
-  __typeof__ (low)  _l = (low);         \
-  __typeof__ (high) _h = (high);        \
-  _x < _l ? _l : _x > _h ? _h :_x ;})
+    __typeof__ (x)    _x = (x);           \
+    __typeof__ (low)  _l = (low);         \
+    __typeof__ (high) _h = (high);        \
+    _x < _l ? _l : _x > _h ? _h :_x ;})
 #endif
 
 #ifndef radians
@@ -124,9 +124,9 @@ typedef void (*voidFuncPtr)(void);
 #endif
 
 #if defined(DISCOURAGE_NONSTANDARD_TYPES) && DISCOURAGE_NONSTANDARD_TYPES
-typedef bool      boolean __attribute__ ((deprecated("a 'boolean' is called a 'bool' in standard C - suggest using standard type name")));
-typedef uint8_t   byte __attribute__ ((deprecated("a 'byte' is an 'unsigned char' (may be more than 8 bits on non-AVR) or 'uint8_t' (always 8 bits) in standard C - suggest using one of these standard types.")));
-typedef uint16_t  word __attribute__ ((deprecated("a 'word' is an 'unsigned int' (may be more than 16 bits on non-AVR) or 'uint15_t' (always 16 bits) in standard C - suggest using one of these standard types.")));
+typedef bool      boolean __attribute__((deprecated("a 'boolean' is called a 'bool' in standard C - suggest using standard type name")));
+typedef uint8_t   byte __attribute__((deprecated("a 'byte' is an 'unsigned char' (may be more than 8 bits on non-AVR) or 'uint8_t' (always 8 bits) in standard C - suggest using one of these standard types.")));
+typedef uint16_t  word __attribute__((deprecated("a 'word' is an 'unsigned int' (may be more than 16 bits on non-AVR) or 'uint15_t' (always 16 bits) in standard C - suggest using one of these standard types.")));
 #else
 typedef bool      boolean;
 typedef uint8_t   byte;
@@ -145,13 +145,13 @@ typedef uint32_t pin_size_t;
 typedef uint8_t pin_size_t;
 #endif
 
-void    pinMode(         pin_size_t pinNumber, uint8_t mode);
-void    digitalWrite(    pin_size_t pinNumber, uint8_t val);
-int8_t  digitalRead(     pin_size_t pinNumber);
-void    analogWrite(     pin_size_t pinNumber, int value);
-int     analogRead(      pin_size_t pinNumber);
-void    analogReference(         uint8_t mode);
-bool    analogReadResolution(     uint8_t res);
+void    pinMode(pin_size_t pinNumber, uint8_t mode);
+void    digitalWrite(pin_size_t pinNumber, uint8_t val);
+int8_t  digitalRead(pin_size_t pinNumber);
+void    analogWrite(pin_size_t pinNumber, int value);
+int     analogRead(pin_size_t pinNumber);
+void    analogReference(uint8_t mode);
+bool    analogReadResolution(uint8_t res);
 
 unsigned long millis(void);
 unsigned long micros(void);

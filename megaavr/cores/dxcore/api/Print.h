@@ -62,7 +62,9 @@ class Print {
 
     // default to zero, meaning "a single write may block"
     // should be overridden by subclasses with buffering
-    virtual int availableForWrite() { return 0; }
+    virtual int availableForWrite() {
+      return 0;
+    }
 
     size_t print(const __FlashStringHelper *);
     size_t print(const String &);
@@ -89,7 +91,7 @@ class Print {
     size_t println(const Printable &);
     size_t println(void);
 
-    int16_t printf(const char *format, ...) __attribute__ ((format (printf, 2, 3)));
+    int16_t printf(const char *format, ...) __attribute__((format(printf, 2, 3)));
     int16_t printf(const __FlashStringHelper *format, ...);
 
     virtual void flush() { /* Empty implementation for backward compatibility */ }

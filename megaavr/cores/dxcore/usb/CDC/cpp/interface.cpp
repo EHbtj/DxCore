@@ -16,16 +16,28 @@ namespace USB_NAMESPACE {
   static volatile bool running;
   static volatile bool suspended;
 
-  Interface_State* get_state() { return &USB_STATE; }
-  LineState_t& get_line_state() { return USBSTATE.bmLineState; }
-  LineEncoding_t& get_line_encoding() { return USBSTATE.LineEncoding; }
-  uint8_t cb_get_configuration() { return USBSTATE.CONFIG; }
+  Interface_State *get_state() {
+    return &USB_STATE;
+  }
+  LineState_t &get_line_state() {
+    return USBSTATE.bmLineState;
+  }
+  LineEncoding_t &get_line_encoding() {
+    return USBSTATE.LineEncoding;
+  }
+  uint8_t cb_get_configuration() {
+    return USBSTATE.CONFIG;
+  }
   void cb_clear_state() {
     USB_STATE = Interface_State{};
     suspended = false;
   }
-  bool is_ready() { return running && !suspended && USBSTATE.CONFIG == 1; }
-  bool is_busy() { return !is_ready(); }
+  bool is_ready() {
+    return running && !suspended && USBSTATE.CONFIG == 1;
+  }
+  bool is_busy() {
+    return !is_ready();
+  }
   bool is_recv_ready() {
     return !(USB_EP_RECV.CTRL & USB_DOSTALL_bm) && (USB_EP_RECV.STATUS & USB_BUSNAK_bm);
   }
@@ -52,7 +64,9 @@ namespace USB_NAMESPACE {
   }
 
   bool cb_set_configuration(uint8_t config) {
-    if (config > 1) return false;
+    if (config > 1) {
+      return false;
+    }
     USBSTATE.CONFIG = config;
     USBSTATE.SENDCNT = USBSTATE.RECVCNT = 0;
     USBSTATE.bLineState = 0;
@@ -60,7 +74,9 @@ namespace USB_NAMESPACE {
     USB_EP_INTR.CTRL = USB_TYPE_DISABLE_gc;
     USB_EP_RECV.CTRL = USB_TYPE_DISABLE_gc;
     USB_EP_SEND.CTRL = USB_TYPE_DISABLE_gc;
-    if (!config) return true;
+    if (!config) {
+      return true;
+    }
 
     USB_EP_INTR.STATUS = USB_BUSNAK_bm;
     USB_EP_INTR.CNT = USB_EP_INTR.MCNT = 0;
@@ -82,10 +98,12 @@ namespace USB_NAMESPACE {
     return true;
   }
 
-  void send_serialstate(SerialState_t& state) {
+  void send_serialstate(SerialState_t &state) {
     // Notifications are optional; never wait for the host inside an interrupt.
-    if (!USBSTATE.CONFIG || !(USB_EP_INTR.STATUS & USB_BUSNAK_bm)) return;
-    auto *p = (Notification_SerialState_t*)&USB_INTR_BUFFER;
+    if (!USBSTATE.CONFIG || !(USB_EP_INTR.STATUS & USB_BUSNAK_bm)) {
+      return;
+    }
+    auto *p = (Notification_SerialState_t *)&USB_INTR_BUFFER;
     p->bmRequestType = 0xA1;
     p->bRequest = CDC_REQ_SerialState;
     p->wValue = 0;
@@ -99,19 +117,27 @@ namespace USB_NAMESPACE {
   void cb_event_class_sof() {
     service_control();
     tick_bootloader();
-    if (is_ready() && is_send_ready() && USBSTATE.SENDCNT) send_buffer();
+    if (is_ready() && is_send_ready() && USBSTATE.SENDCNT) {
+      send_buffer();
+    }
   }
 
-  void bus_suspend() { suspended = true; }
-  void bus_wake() { suspended = false; }
+  void bus_suspend() {
+    suspended = true;
+  }
+  void bus_wake() {
+    suspended = false;
+  }
 
   void start() {
-    if (running) return;
+    if (running) {
+      return;
+    }
     // USB's 48 MHz PLL is controlled by the peripheral, using OSCHF.
     // Match the selected bootloader's internal-regulator / external-VUSB mode.
     SYSCFG_VUSBCTRL = DXCORE_USB_VREG ? SYSCFG_USBVREG_bm : 0;
     _PROTECTED_WRITE(CLKCTRL_OSCHFCTRLA,
-      (CLKCTRL_OSCHFCTRLA & ~CLKCTRL_AUTOTUNE_gm) | CLKCTRL_AUTOTUNE_SOF_gc);
+                     (CLKCTRL_OSCHFCTRLA & ~CLKCTRL_AUTOTUNE_gm) | CLKCTRL_AUTOTUNE_SOF_gc);
     _delay_ms(1);
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
       USB0_CTRLA = 0;
@@ -135,22 +161,32 @@ namespace USB_NAMESPACE {
 
   // Waiting uses calibrated short delays, so it also terminates with millis disabled.
   static bool wait_send() {
-    if (!(SREG & CPU_I_bm) || !is_ready() || !(USBSTATE.bLineState & 1)) return false;
+    if (!(SREG & CPU_I_bm) || !is_ready() || !(USBSTATE.bLineState & 1)) {
+      return false;
+    }
     for (uint16_t ticks = 0; ticks < USB_TX_TIMEOUT_MS * 10U; ++ticks) {
-      if (!is_ready() || !(USBSTATE.bLineState & 1)) return false;
-      if (is_send_ready()) return true;
+      if (!is_ready() || !(USBSTATE.bLineState & 1)) {
+        return false;
+      }
+      if (is_send_ready()) {
+        return true;
+      }
       _delay_us(100);
     }
     return false;
   }
 
   size_t write_byte(uint8_t value) {
-    if (!wait_send()) return 0;
+    if (!wait_send()) {
+      return 0;
+    }
     size_t written = 0;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
       if (is_ready() && is_send_ready() && (USBSTATE.bLineState & 1)) {
         USB_SEND_BUFFER[USBSTATE.SENDCNT++] = value;
-        if (USBSTATE.SENDCNT == USB_BULK_SEND_MAX) send_buffer();
+        if (USBSTATE.SENDCNT == USB_BULK_SEND_MAX) {
+          send_buffer();
+        }
         written = 1;
       }
     }
@@ -160,16 +196,21 @@ namespace USB_NAMESPACE {
   size_t write_available() {
     size_t count = 0;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      if (is_ready() && (USBSTATE.bLineState & 1) && is_send_ready())
+      if (is_ready() && (USBSTATE.bLineState & 1) && is_send_ready()) {
         count = USB_BULK_SEND_MAX - USBSTATE.SENDCNT;
+      }
     }
     return count;
   }
 
   void write_flush() {
-    if (!wait_send()) return;
+    if (!wait_send()) {
+      return;
+    }
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      if (is_ready() && is_send_ready() && USBSTATE.SENDCNT) send_buffer();
+      if (is_ready() && is_send_ready() && USBSTATE.SENDCNT) {
+        send_buffer();
+      }
     }
     (void)wait_send();
   }
@@ -178,9 +219,12 @@ namespace USB_NAMESPACE {
     size_t count = 0;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
       if (is_ready() && is_recv_ready()) {
-        if (USB_EP_RECV.CNT <= USB_BULK_RECV_MAX && USBSTATE.RECVCNT <= USB_EP_RECV.CNT)
+        if (USB_EP_RECV.CNT <= USB_BULK_RECV_MAX && USBSTATE.RECVCNT <= USB_EP_RECV.CNT) {
           count = USB_EP_RECV.CNT - USBSTATE.RECVCNT;
-        if (!count) arm_receive(); // Also release zero-length packets.
+        }
+        if (!count) {
+          arm_receive();  // Also release zero-length packets.
+        }
       }
     }
     return count;
@@ -189,7 +233,9 @@ namespace USB_NAMESPACE {
   int peek_byte() {
     int value = -1;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      if (read_available()) value = USB_RECV_BUFFER[USBSTATE.RECVCNT];
+      if (read_available()) {
+        value = USB_RECV_BUFFER[USBSTATE.RECVCNT];
+      }
     }
     return value;
   }
@@ -199,7 +245,9 @@ namespace USB_NAMESPACE {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
       if (read_available()) {
         value = USB_RECV_BUFFER[USBSTATE.RECVCNT++];
-        if (USBSTATE.RECVCNT == USB_EP_RECV.CNT) arm_receive();
+        if (USBSTATE.RECVCNT == USB_EP_RECV.CNT) {
+          arm_receive();
+        }
       }
     }
     return value;

@@ -523,8 +523,8 @@ megaTinyCore and DxCore allow selection of most timers on the part for use as th
 
 These options are:
 
-Timer | DxCore | mTC |
-------|--------|-----|
+Timer | DxCore | mTC | Notes |
+------|--------|-----|-------|
 RTC   | No     | Yes | This was not done the way it should have been and I regret it. SleepLib will do better.
 TCA   | Yes.   | Yes | Default for 0-series parts on MTC (as the only other option is to use the timer they use for servo and tone and anything else that needs a utility timer)
 TCB   | Yes.   | Yes | Default for DxC is TCB2 or the highest numbered TCB if there's no TCB2. For mTC, TCB is default only on 2-series (1-series has the TCD that can do millis)
@@ -692,7 +692,7 @@ ISR execution time has decreased significantly in recent versions through aggres
 |-----|---------|----------|----------|----------|---------------|------------------------|
 |     |  48 MHz |     1 ms |  1.33 us |   0.14 % | *      2.5 us | 9 (0-7, 9)             |
 | !   |  44 MHz |     1 ms |     1 us | ! 0.15 % | !      3-4 us | 5/7 ( ~1,~ 2, 5 ~6,~ 7, ~10~)|
-|        40 MHz |     1 ms |     1 us |   0.17 % | *      3-4 us | 6 (2,4,6,8,10)         |
+|     |  40 MHz |     1 ms |     1 us |   0.17 % | *      3-4 us | 6 (2,4,6,8,10)         |
 | !   |  36 MHz |     1 ms |     1 us |   0.18 % |        3-4 us | 3/5 (3,6, ~9,10~ )     |
 |  †  |  32 MHz |     1 ms |     1 us |   0.20 % |          3 us | 1                      |
 |     |  30 MHz |     1 ms |  1.07 us |   0.22 % |        < 6 us | 5 (3,4,7,8)            |
@@ -925,14 +925,14 @@ Calls to `_gCMT` should be conditionally compiled based on CORE_HAS_CURRENTTIMER
 | Timer Name   | Value | Peripheral |Notes:
 |--------------|-------|------------|-------
 | NOT_ON_TIMER  | 0x00 |      None  | Means millis is *paused* or *stopped* but can be restarted.
-| TIMERA0       | 0x10 |     `TCA0` |
-| TIMERA1       | 0x08 |     `TCA1` |
+| TIMERA0       | 0x10 |     `TCA0` | |
+| TIMERA1       | 0x08 |     `TCA1` | |
 | TIMERA2       | 0x18 |     `TCA2` | Theoretical
-| TIMERB0       | 0x20 |     `TCB0` |
-| TIMERB1       | 0x21 |     `TCB1` |
-| TIMERB2       | 0x22 |     `TCB2` |
-| TIMERB3       | 0x23 |     `TCB3` |
-| TIMERB4       | 0x24 |     `TCB4` |
+| TIMERB0       | 0x20 |     `TCB0` | |
+| TIMERB1       | 0x21 |     `TCB1` | |
+| TIMERB2       | 0x22 |     `TCB2` | |
+| TIMERB3       | 0x23 |     `TCB3` | |
+| TIMERB4       | 0x24 |     `TCB4` | |
 | TIMERD0       | 0x40 |     `TCD0` | mTC only
 | TIMERE0      |  TBD  |     `TCE0` | TBD
 | TIMERF0      |  TBD  |     `TCF0` | TBD

@@ -31,127 +31,127 @@ namespace USB_NAMESPACE {
 
   enum {
     USB_LANGUAGE_EN_US              = 0x0409
-  , USB_LANGUAGE_JA_JP              = 0x0411
+    , USB_LANGUAGE_JA_JP              = 0x0411
 
-  /* bInterfaceNumber */
-  , USB_INTERFACE_ID_CDC_CCI        = 0
-  , USB_INTERFACE_ID_CDC_DCI        = 1
+    /* bInterfaceNumber */
+    , USB_INTERFACE_ID_CDC_CCI        = 0
+    , USB_INTERFACE_ID_CDC_DCI        = 1
 
-  /* bEndpointAddress */
-  , USB_EP_DESCRIPTOR_DIR_IN_bm     = (1 << 7)
-  , USB_EP_DESCRIPTOR_DIR_OUT_bm    = (0 << 7)
+    /* bEndpointAddress */
+    , USB_EP_DESCRIPTOR_DIR_IN_bm     = (1 << 7)
+    , USB_EP_DESCRIPTOR_DIR_OUT_bm    = (0 << 7)
 
-  /* bmRequestType */
-  , USB_REQTYPE_DIRECTION_bp        = 7
-  , USB_REQTYPE_DIRECTION_bm        = (1 << 7)
-  , USB_REQTYPE_TYPE_gm             = (3 << 5)
-  , USB_REQTYPE_RECIPIENT_gm        = (31)
-  , USB_RECIPIENT_DEVICE_gc         = (0 << 0)  // 0x00
-  , USB_RECIPIENT_INTERFACE_gc      = (1 << 0)  // 0x01
-  , USB_RECIPIENT_ENDPOINT_gc       = (2 << 0)  // 0x02
-  , USB_RECIPIENT_OTHER_gc          = (3 << 0)  // 0x03
-  , USB_REQTYPE_STANDARD_gc         = (0 << 5)  // 0x00
-  , USB_REQTYPE_CLASS_gc            = (1 << 5)  // 0x20
-  , USB_REQTYPE_VENDOR_gc           = (2 << 5)  // 0x40
+    /* bmRequestType */
+    , USB_REQTYPE_DIRECTION_bp        = 7
+    , USB_REQTYPE_DIRECTION_bm        = (1 << 7)
+    , USB_REQTYPE_TYPE_gm             = (3 << 5)
+    , USB_REQTYPE_RECIPIENT_gm        = (31)
+    , USB_RECIPIENT_DEVICE_gc         = (0 << 0)  // 0x00
+    , USB_RECIPIENT_INTERFACE_gc      = (1 << 0)  // 0x01
+    , USB_RECIPIENT_ENDPOINT_gc       = (2 << 0)  // 0x02
+    , USB_RECIPIENT_OTHER_gc          = (3 << 0)  // 0x03
+    , USB_REQTYPE_STANDARD_gc         = (0 << 5)  // 0x00
+    , USB_REQTYPE_CLASS_gc            = (1 << 5)  // 0x20
+    , USB_REQTYPE_VENDOR_gc           = (2 << 5)  // 0x40
 
-  /* bmAttributes */
-  , USB_CONFIG_ATTR_BUSPOWERED_bm   = (0 << 6)
-  , USB_CONFIG_ATTR_SELFPOWERED_bm  = (1 << 6)
-  , USB_CONFIG_ATTR_REMOTEWAKEUP_bm = (1 << 5)
+    /* bmAttributes */
+    , USB_CONFIG_ATTR_BUSPOWERED_bm   = (0 << 6)
+    , USB_CONFIG_ATTR_SELFPOWERED_bm  = (1 << 6)
+    , USB_CONFIG_ATTR_REMOTEWAKEUP_bm = (1 << 5)
 
-  /* bmAttributes */
-  , USB_EP_TYPE_CONTROL_gc          = (0 << 0)
-  , USB_EP_TYPE_ISOCHRONOUS_gc      = (1 << 0)
-  , USB_EP_TYPE_BULK_gc             = (2 << 0)
-  , USB_EP_TYPE_INTERRUPT_gc        = (3 << 0)
-  , USB_EP_ATTR_NOSYNC_gc           = (0 << 2)
-  , USB_EP_ATTR_ASYNC_gc            = (1 << 2)
-  , USB_EP_ATTR_ADAPTIVE_gc         = (2 << 2)
-  , USB_EP_ATTR_SYNC_gc             = (3 << 2)
-  , USB_EP_USAGE_DATA_gc            = (0 << 4)
-  , USB_EP_USAGE_FEEDBACK_gc        = (1 << 4)
-  , USB_EP_USAGE_IMPLICIT_gc        = (2 << 4)
+    /* bmAttributes */
+    , USB_EP_TYPE_CONTROL_gc          = (0 << 0)
+    , USB_EP_TYPE_ISOCHRONOUS_gc      = (1 << 0)
+    , USB_EP_TYPE_BULK_gc             = (2 << 0)
+    , USB_EP_TYPE_INTERRUPT_gc        = (3 << 0)
+    , USB_EP_ATTR_NOSYNC_gc           = (0 << 2)
+    , USB_EP_ATTR_ASYNC_gc            = (1 << 2)
+    , USB_EP_ATTR_ADAPTIVE_gc         = (2 << 2)
+    , USB_EP_ATTR_SYNC_gc             = (3 << 2)
+    , USB_EP_USAGE_DATA_gc            = (0 << 4)
+    , USB_EP_USAGE_FEEDBACK_gc        = (1 << 4)
+    , USB_EP_USAGE_IMPLICIT_gc        = (2 << 4)
 
-  /* bRequest */
-  , USB_REQ_GetStatus               = 0
-  , USB_REQ_ClearFeature            = 1
-  , USB_REQ_SetFeature              = 3
-  , USB_REQ_SetAddress              = 5
-  , USB_REQ_GetDescriptor           = 6
-  , USB_REQ_SetDescriptor           = 7
-  , USB_REQ_GetConfiguration        = 8
-  , USB_REQ_SetConfiguration        = 9
-  , USB_REQ_GetInterface            = 10
-  , USB_REQ_SetInterface            = 11
-  , USB_REQ_SynchFrame              = 12
+    /* bRequest */
+    , USB_REQ_GetStatus               = 0
+    , USB_REQ_ClearFeature            = 1
+    , USB_REQ_SetFeature              = 3
+    , USB_REQ_SetAddress              = 5
+    , USB_REQ_GetDescriptor           = 6
+    , USB_REQ_SetDescriptor           = 7
+    , USB_REQ_GetConfiguration        = 8
+    , USB_REQ_SetConfiguration        = 9
+    , USB_REQ_GetInterface            = 10
+    , USB_REQ_SetInterface            = 11
+    , USB_REQ_SynchFrame              = 12
 
-  , USB_FEATURE_EndpointHalt_bm     = 0x00
-  , USB_FEATURE_RemoteWakeup_bm     = 0x01
-  , USB_FEATURE_TestMode_bm         = 0x02
+    , USB_FEATURE_EndpointHalt_bm     = 0x00
+    , USB_FEATURE_RemoteWakeup_bm     = 0x01
+    , USB_FEATURE_TestMode_bm         = 0x02
 
-  /* bRequest */
-  , USB_DTYPE_Device                = 0x01
-  , USB_DTYPE_Configuration         = 0x02
-  , USB_DTYPE_String                = 0x03
-  , USB_DTYPE_Interface             = 0x04
-  , USB_DTYPE_Endpoint              = 0x05
-  , USB_DTYPE_DeviceQualifier       = 0x06
-  , USB_DTYPE_Other                 = 0x07
-  , USB_DTYPE_InterfacePower        = 0x08
-  , USB_DTYPE_InterfaceAssociation  = 0x0B
-  , USB_DTYPE_CSInterface           = 0x24
-  , USB_DTYPE_CSEndpoint            = 0x25
+    /* bRequest */
+    , USB_DTYPE_Device                = 0x01
+    , USB_DTYPE_Configuration         = 0x02
+    , USB_DTYPE_String                = 0x03
+    , USB_DTYPE_Interface             = 0x04
+    , USB_DTYPE_Endpoint              = 0x05
+    , USB_DTYPE_DeviceQualifier       = 0x06
+    , USB_DTYPE_Other                 = 0x07
+    , USB_DTYPE_InterfacePower        = 0x08
+    , USB_DTYPE_InterfaceAssociation  = 0x0B
+    , USB_DTYPE_CSInterface           = 0x24
+    , USB_DTYPE_CSEndpoint            = 0x25
 
-  , USB_CSCP_NoDeviceClass          = 0x00
-  , USB_CSCP_NoDeviceSubclass       = 0x00
-  , USB_CSCP_NoDeviceProtocol       = 0x00
-  , USB_CSCP_VendorSpecificClass    = 0xFF
-  , USB_CSCP_VendorSpecificSubclass = 0xFF
-  , USB_CSCP_VendorSpecificProtocol = 0xFF
-  , USB_CSCP_IADDeviceClass         = 0xEF
-  , USB_CSCP_IADDeviceSubclass      = 0x02
-  , USB_CSCP_IADDeviceProtocol      = 0x01
-  , USB_CSCP_CDCClass               = 0x02
-  , USB_CSCP_ACMSubclass            = 0x02
-  , USB_CSCP_ATCommandProtocol      = 0x01
+    , USB_CSCP_NoDeviceClass          = 0x00
+    , USB_CSCP_NoDeviceSubclass       = 0x00
+    , USB_CSCP_NoDeviceProtocol       = 0x00
+    , USB_CSCP_VendorSpecificClass    = 0xFF
+    , USB_CSCP_VendorSpecificSubclass = 0xFF
+    , USB_CSCP_VendorSpecificProtocol = 0xFF
+    , USB_CSCP_IADDeviceClass         = 0xEF
+    , USB_CSCP_IADDeviceSubclass      = 0x02
+    , USB_CSCP_IADDeviceProtocol      = 0x01
+    , USB_CSCP_CDCClass               = 0x02
+    , USB_CSCP_ACMSubclass            = 0x02
+    , USB_CSCP_ATCommandProtocol      = 0x01
 
-  , CDC_REQ_SendEncapsulatedCommand = 0x00
-  , CDC_REQ_GetEncapsulatedResponse = 0x01
-  , CDC_REQ_SetLineEncoding         = 0x20
-  , CDC_REQ_GetLineEncoding         = 0x21
-  , CDC_REQ_SetLineState            = 0x22
-  , CDC_REQ_SendBreak               = 0x23
-  , CDC_REQ_ResponeAvailable        = 0x00
-  , CDC_REQ_SerialState             = 0x20
+    , CDC_REQ_SendEncapsulatedCommand = 0x00
+    , CDC_REQ_GetEncapsulatedResponse = 0x01
+    , CDC_REQ_SetLineEncoding         = 0x20
+    , CDC_REQ_GetLineEncoding         = 0x21
+    , CDC_REQ_SetLineState            = 0x22
+    , CDC_REQ_SendBreak               = 0x23
+    , CDC_REQ_ResponeAvailable        = 0x00
+    , CDC_REQ_SerialState             = 0x20
 
-  /* USB_REQ_GetDescriptor / wValue */
-  , USB_DATA_GetDescripter_Device   = (USB_DTYPE_Device          << 8)
-  , USB_DATA_GetDescripter_Config   = (USB_DTYPE_Configuration   << 8)
-  , USB_DATA_GetDescripter_Qualifier= (USB_DTYPE_DeviceQualifier << 8)
-  , USB_DATA_GetString_Index_0      = ((USB_DTYPE_String << 8) + 0)
-  , USB_DATA_GetString_Index_1      = ((USB_DTYPE_String << 8) + 1)
-  , USB_DATA_GetString_Index_2      = ((USB_DTYPE_String << 8) + 2)
-  , USB_DATA_GetString_Index_3      = ((USB_DTYPE_String << 8) + 3)
-  , USB_DATA_GetString_Index_4      = ((USB_DTYPE_String << 8) + 4)
+    /* USB_REQ_GetDescriptor / wValue */
+    , USB_DATA_GetDescripter_Device   = (USB_DTYPE_Device          << 8)
+    , USB_DATA_GetDescripter_Config   = (USB_DTYPE_Configuration   << 8)
+    , USB_DATA_GetDescripter_Qualifier = (USB_DTYPE_DeviceQualifier << 8)
+    , USB_DATA_GetString_Index_0      = ((USB_DTYPE_String << 8) + 0)
+    , USB_DATA_GetString_Index_1      = ((USB_DTYPE_String << 8) + 1)
+    , USB_DATA_GetString_Index_2      = ((USB_DTYPE_String << 8) + 2)
+    , USB_DATA_GetString_Index_3      = ((USB_DTYPE_String << 8) + 3)
+    , USB_DATA_GetString_Index_4      = ((USB_DTYPE_String << 8) + 4)
 
-  /* bRequest + bRequest = wRequestType */
-  , USB_REQTYPE_GetStatus           = ((USB_REQ_GetStatus           << 8) | 0x80)   // 0x0080 DV,IF,EP
-  , USB_REQTYPE_ClearFeature        = ((USB_REQ_ClearFeature        << 8))          // 0x0100 DV,IF,EP
-  , USB_REQTYPE_SetFeature          = ((USB_REQ_SetFeature          << 8))          // 0x0300 DV,IF,EP
-  , USB_REQTYPE_SetAddress          = ((USB_REQ_SetAddress          << 8))          // 0x0500 DV
-  , USB_REQTYPE_GetDescriptor       = ((USB_REQ_GetDescriptor       << 8) | 0x80)   // 0x0680 DV
-  , USB_REQTYPE_SetDescriptor       = ((USB_REQ_SetDescriptor       << 8))          // 0x0700 DV Optional
-  , USB_REQTYPE_GetConfiguration    = ((USB_REQ_GetConfiguration    << 8))          // 0x0880 DV
-  , USB_REQTYPE_SetConfiguration    = ((USB_REQ_SetConfiguration    << 8))          // 0x0900 DV
-  , USB_REQTYPE_GetInterface        = ((USB_REQ_GetInterface        << 8) | 0x81)   // 0x0A81 IF
-  , USB_REQTYPE_SetInterface        = ((USB_REQ_SetInterface        << 8) | 0x01)   // 0x0B01 IF
-  , USB_REQTYPE_SynchFrame          = ((USB_REQ_SynchFrame          << 8) | 0x82)   // 0x0C82 EP
-  , USB_REQTYPE_ClearFeature_EP     = ((USB_REQ_ClearFeature        << 8) | 0x02)   // 0x0102 EP
+    /* bRequest + bRequest = wRequestType */
+    , USB_REQTYPE_GetStatus           = ((USB_REQ_GetStatus           << 8) | 0x80)   // 0x0080 DV,IF,EP
+    , USB_REQTYPE_ClearFeature        = ((USB_REQ_ClearFeature        << 8))          // 0x0100 DV,IF,EP
+    , USB_REQTYPE_SetFeature          = ((USB_REQ_SetFeature          << 8))          // 0x0300 DV,IF,EP
+    , USB_REQTYPE_SetAddress          = ((USB_REQ_SetAddress          << 8))          // 0x0500 DV
+    , USB_REQTYPE_GetDescriptor       = ((USB_REQ_GetDescriptor       << 8) | 0x80)   // 0x0680 DV
+    , USB_REQTYPE_SetDescriptor       = ((USB_REQ_SetDescriptor       << 8))          // 0x0700 DV Optional
+    , USB_REQTYPE_GetConfiguration    = ((USB_REQ_GetConfiguration    << 8))          // 0x0880 DV
+    , USB_REQTYPE_SetConfiguration    = ((USB_REQ_SetConfiguration    << 8))          // 0x0900 DV
+    , USB_REQTYPE_GetInterface        = ((USB_REQ_GetInterface        << 8) | 0x81)   // 0x0A81 IF
+    , USB_REQTYPE_SetInterface        = ((USB_REQ_SetInterface        << 8) | 0x01)   // 0x0B01 IF
+    , USB_REQTYPE_SynchFrame          = ((USB_REQ_SynchFrame          << 8) | 0x82)   // 0x0C82 EP
+    , USB_REQTYPE_ClearFeature_EP     = ((USB_REQ_ClearFeature        << 8) | 0x02)   // 0x0102 EP
 
-  , CDC_REQTYPE_SetLineEncoding     = ((CDC_REQ_SetLineEncoding     << 8) | 0x21)   // 0x2021 SET_CLASS_INT
-  , CDC_REQTYPE_GetLineEncoding     = ((CDC_REQ_GetLineEncoding     << 8) | 0xA1)   // 0x21A1 GET_CLASS_INT
-  , CDC_REQTYPE_SetLineState        = ((CDC_REQ_SetLineState        << 8) | 0x21)   // 0x2221 SET_CLASS_INT
-  , CDC_REQTYPE_SendBreak           = ((CDC_REQ_SendBreak           << 8) | 0x21)   // 0x2321 SET_CLASS_INT
+    , CDC_REQTYPE_SetLineEncoding     = ((CDC_REQ_SetLineEncoding     << 8) | 0x21)   // 0x2021 SET_CLASS_INT
+    , CDC_REQTYPE_GetLineEncoding     = ((CDC_REQ_GetLineEncoding     << 8) | 0xA1)   // 0x21A1 GET_CLASS_INT
+    , CDC_REQTYPE_SetLineState        = ((CDC_REQ_SetLineState        << 8) | 0x21)   // 0x2221 SET_CLASS_INT
+    , CDC_REQTYPE_SendBreak           = ((CDC_REQ_SendBreak           << 8) | 0x21)   // 0x2321 SET_CLASS_INT
   };
 
   /* USB_Setup_Packet : 8 bytes */
@@ -301,18 +301,18 @@ namespace USB_NAMESPACE {
   } PACKED CDC_Union_Functional_Descriptor;
 
   /*
-   * CDC-ACM structers
+   * CDC-ACM structures
    */
 
   enum LineEncoding_enum {
     StopBits_1   = 0
-  , StopBits_1H  = 1
-  , StopBits_2   = 2
-  , Parity_None  = 0
-  , Parity_Odd   = 1
-  , Parity_Even  = 2
-  , Parity_Mark  = 3
-  , Parity_Space = 4
+    , StopBits_1H  = 1
+    , StopBits_2   = 2
+    , Parity_None  = 0
+    , Parity_Odd   = 1
+    , Parity_Even  = 2
+    , Parity_Mark  = 3
+    , Parity_Space = 4
   };
 
   /* CDC Line Coding : 7 bytes */

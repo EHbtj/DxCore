@@ -44,14 +44,14 @@
 #endif
 
 FUSES = {
-    .WDTCFG   = FUSE0_DEFAULT,
-    .BODCFG   = FUSE1_DEFAULT,
-    .OSCCFG   = FUSE2_DEFAULT,
-    .SYSCFG0  = FUSE5_DEFAULT | FUSE_EESAVE_bm | ENABLE_SYS_RESET,
-    .SYSCFG1  = FUSE6_DEFAULT,
-    .CODESIZE = FUSE7_DEFAULT,  /* 0=All application code */
-    .BOOTSIZE = APPSTART,
-    .PDICFG   = FUSE10_DEFAULT  /* Never change it */
+  .WDTCFG   = FUSE0_DEFAULT,
+  .BODCFG   = FUSE1_DEFAULT,
+  .OSCCFG   = FUSE2_DEFAULT,
+  .SYSCFG0  = FUSE5_DEFAULT | FUSE_EESAVE_bm | ENABLE_SYS_RESET,
+  .SYSCFG1  = FUSE6_DEFAULT,
+  .CODESIZE = FUSE7_DEFAULT,  /* 0=All application code */
+  .BOOTSIZE = APPSTART,
+  .PDICFG   = FUSE10_DEFAULT  /* Never change it */
 };
 
 // end of code

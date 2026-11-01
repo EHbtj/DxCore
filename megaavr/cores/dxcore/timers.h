@@ -1,158 +1,158 @@
 #ifndef __TIMERS_H__
-#define __TIMERS_H__
-#include <core_parameters.h>
+  #define __TIMERS_H__
+  #include <core_parameters.h>
 
-/*****************************************
-|     #   # ### #    #    ###  ###       |
-|     ## ##  #  #    #     #  #          |
-|     # # #  #  #    #     #   ###       |
-|     #   #  #  #    #     #      #      |
-|     #   # ### #### #### ### ####       |
-|_______________________________________*/
+  /*****************************************
+  |     #   # ### #    #    ###  ###       |
+  |     ## ##  #  #    #     #  #          |
+  |     # # #  #  #    #     #   ###       |
+  |     #   #  #  #    #     #      #      |
+  |     #   # ### #### #### ### ####       |
+  |_______________________________________*/
 
-#ifdef MILLIS_USE_TIMERNONE
-  #define DISABLE_MILLIS
-#elif (defined(MILLIS_USE_TIMERRTC_XTAL) || defined(MILLIS_USE_TIMERRTC_XOSC))
-  #define MILLIS_USE_TIMERRTC
-#elif (defined(MILLIS_USE_TIMERA0) || defined(MILLIS_USE_TIMERA1))
-  #define MILLIS_USE_TCA
-#elif (defined(MILLIS_USE_TIMERB0) || defined(MILLIS_USE_TIMERB1) || defined(MILLIS_USE_TIMERB2) || defined(MILLIS_USE_TIMERB3) || defined(MILLIS_USE_TIMERB4) || defined(MILLIS_USE_TIMERB5) || defined(MILLIS_USE_TIMERB6) || defined(MILLIS_USE_TIMERB7))
-  #define MILLIS_USE_TCB
-#else
-  #warning "No millis timer selected, millis not disabled. Grabbing a timer. If seen outside of automated testing, report as bug immediately."
-  #if defined(TCB2)
-    #define MILLIS_USE_TIMERB2
+  #ifdef MILLIS_USE_TIMERNONE
+    #define DISABLE_MILLIS
+  #elif (defined(MILLIS_USE_TIMERRTC_XTAL) || defined(MILLIS_USE_TIMERRTC_XOSC))
+    #define MILLIS_USE_TIMERRTC
+  #elif (defined(MILLIS_USE_TIMERA0) || defined(MILLIS_USE_TIMERA1))
+    #define MILLIS_USE_TCA
+  #elif (defined(MILLIS_USE_TIMERB0) || defined(MILLIS_USE_TIMERB1) || defined(MILLIS_USE_TIMERB2) || defined(MILLIS_USE_TIMERB3) || defined(MILLIS_USE_TIMERB4) || defined(MILLIS_USE_TIMERB5) || defined(MILLIS_USE_TIMERB6) || defined(MILLIS_USE_TIMERB7))
+    #define MILLIS_USE_TCB
   #else
-    #define MILLIS_USE_TIMERB1
+    #warning "No millis timer selected, millis not disabled. Grabbing a timer. If seen outside of automated testing, report as bug immediately."
+    #if defined(TCB2)
+      #define MILLIS_USE_TIMERB2
+    #else
+      #define MILLIS_USE_TIMERB1
+    #endif
+    #define MILLIS_USE_TCB
   #endif
-  #define MILLIS_USE_TCB
-#endif
-/*
-#if (defined(MILLIS_USE_TIMERD0))
-  #define MILLIS_USE_TCD
-#endif
-*/
+  /*
+  #if (defined(MILLIS_USE_TIMERD0))
+    #define MILLIS_USE_TCD
+  #endif
+  */
 
-#if (defined(MILLIS_USE_TIMERB0) || defined(MILLIS_USE_TIMERB1) || defined(MILLIS_USE_TIMERB2) || defined(MILLIS_USE_TIMERB3) || defined(MILLIS_USE_TIMERB4) || defined(MILLIS_USE_TIMERB5) || defined(MILLIS_USE_TIMERB6) || defined(MILLIS_USE_TIMERB7))
-  #if (F_CPU == 1000000UL)
-    #define TIME_TRACKING_TIMER_DIVIDER   (1)
-    #define TIME_TRACKING_TIMER_PERIOD    ((F_CPU/500)-1)
-  #elif (F_CPU == 2000000UL)
-    #define TIME_TRACKING_TIMER_DIVIDER   (2)
-    #define TIME_TRACKING_TIMER_PERIOD    ((F_CPU/1000)-1)
+  #if (defined(MILLIS_USE_TIMERB0) || defined(MILLIS_USE_TIMERB1) || defined(MILLIS_USE_TIMERB2) || defined(MILLIS_USE_TIMERB3) || defined(MILLIS_USE_TIMERB4) || defined(MILLIS_USE_TIMERB5) || defined(MILLIS_USE_TIMERB6) || defined(MILLIS_USE_TIMERB7))
+    #if (F_CPU == 1000000UL)
+      #define TIME_TRACKING_TIMER_DIVIDER   (1)
+      #define TIME_TRACKING_TIMER_PERIOD    ((F_CPU/500)-1)
+    #elif (F_CPU == 2000000UL)
+      #define TIME_TRACKING_TIMER_DIVIDER   (2)
+      #define TIME_TRACKING_TIMER_PERIOD    ((F_CPU/1000)-1)
+    #else
+      #define TIME_TRACKING_TIMER_DIVIDER   (2)
+      #define TIME_TRACKING_TIMER_PERIOD    ((F_CPU/2000)-1)
+    #endif
+  #elif defined(MILLIS_USE_TIMERD0)
+    #define TIME_TRACKING_TIMER_PERIOD      (0x1FD)
+    #if (F_CPU == 1000000UL)
+      #define TIME_TRACKING_TIMER_DIVIDER   (64)    /* Clock divider for TCD0 */
+    #else
+      #define TIME_TRACKING_TIMER_DIVIDER   (32)    /* Clock divider for TCD0 */
+    #endif
+  #else // Otherwise it must be a TCA
+    #define   TIME_TRACKING_TIMER_PERIOD    (0xFE)
+    #if     (F_CPU > 30000000UL)
+      #define TIME_TRACKING_TIMER_DIVIDER   (256)
+    #elif   (F_CPU <= 1000000UL)
+      #define TIME_TRACKING_TIMER_DIVIDER   (8)
+    #elif   (F_CPU <= 5000000UL)
+      #define TIME_TRACKING_TIMER_DIVIDER   (16)
+    #else // 30000000UL >= F_CPU > 5000000
+      #define TIME_TRACKING_TIMER_DIVIDER   (64)
+    #endif
+  #endif
+
+  #define TIME_TRACKING_TICKS_PER_OVF   (TIME_TRACKING_TIMER_PERIOD   + 1UL)
+  #define TIME_TRACKING_CYCLES_PER_OVF  (TIME_TRACKING_TICKS_PER_OVF  * TIME_TRACKING_TIMER_DIVIDER)
+
+  // For a type B timer as millis, these #defines aren't needed, but they're defined accurately anyway,
+
+
+  #if   defined(MILLIS_USE_TIMERA0)
+    #ifndef TCA0
+      #error "TCA0, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERA0
+    #define MILLIS_VECTOR TCA0_HUNF_vect
+  #elif defined(MILLIS_USE_TIMERA1)
+    #ifndef TCA1
+      #error "TCA1, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERA1
+    #define MILLIS_VECTOR TCA1_HUNF_vect
+  #elif defined(MILLIS_USE_TIMERB0)
+    #ifndef TCB0
+      #error "TCB0, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB0
+    #define MILLIS_VECTOR TCB0_INT_vect
+  #elif defined(MILLIS_USE_TIMERB1)
+    #ifndef TCB1
+      #error "TCB1, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB1
+    #define MILLIS_VECTOR TCB1_INT_vect
+  #elif defined(MILLIS_USE_TIMERB2)
+    #ifndef TCB2
+      #error "TCB2, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB2
+    #define MILLIS_VECTOR TCB2_INT_vect
+  #elif defined(MILLIS_USE_TIMERB3)
+    #ifndef TCB3
+      #error "TCB3, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB3
+    #define MILLIS_VECTOR TCB3_INT_vect
+  #elif defined(MILLIS_USE_TIMERB4)
+    #ifndef TCB4
+      #error "TCB4, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB4
+    #define MILLIS_VECTOR TCB4_INT_vect
+  #elif defined(MILLIS_USE_TIMERB5)
+    #ifndef TCB5
+      #error "TCB5, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB5
+    #define MILLIS_VECTOR TCB5_INT_vect
+  #elif defined(MILLIS_USE_TIMERB6)
+    #ifndef TCB6
+      #error "TCB6, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB6
+    #define MILLIS_VECTOR TCB6_INT_vect
+  #elif defined(MILLIS_USE_TIMERB7)
+    #ifndef TCB7
+      #error "TCB7, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERB7
+    #define MILLIS_VECTOR TCB7_INT_vect
+  #elif defined(MILLIS_USE_TIMERD0)
+    #ifndef TCD0
+      #error "TCD0, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERD0
+    #define MILLIS_VECTOR TCD0_OVF_vect
+  #elif defined(MILLIS_USE_TIMERE0)
+    #ifndef TCE0
+      #error "TCE0, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERE0
+    #define MILLIS_VECTOR TCE0_OVF_vect
+  #elif defined(MILLIS_USE_TIMERRTC)
+    #ifndef RTC
+      #error "RTC, selected for millis, does not exist on this part"
+    #endif
+    #define MILLIS_TIMER TIMERRTC
+    #define MILLIS_VECTOR RTC_CNT_vect
+  #elif defined(MILLIS_USE_TIMERNONE)
+    #define MILLIS_TIMER NOT_ON_TIMER
   #else
-    #define TIME_TRACKING_TIMER_DIVIDER   (2)
-    #define TIME_TRACKING_TIMER_PERIOD    ((F_CPU/2000)-1)
+    #error "Millis timer not specified, nor is millis disabled - can't happen!"
   #endif
-#elif defined(MILLIS_USE_TIMERD0)
-  #define TIME_TRACKING_TIMER_PERIOD      (0x1FD)
-  #if (F_CPU == 1000000UL)
-    #define TIME_TRACKING_TIMER_DIVIDER   (64)    /* Clock divider for TCD0 */
-  #else
-    #define TIME_TRACKING_TIMER_DIVIDER   (32)    /* Clock divider for TCD0 */
-  #endif
-#else // Otherwise it must be a TCA
-  #define   TIME_TRACKING_TIMER_PERIOD    (0xFE)
-  #if     (F_CPU > 30000000UL)
-    #define TIME_TRACKING_TIMER_DIVIDER   (256)
-  #elif   (F_CPU <= 1000000UL)
-    #define TIME_TRACKING_TIMER_DIVIDER   (8)
-  #elif   (F_CPU <= 5000000UL)
-    #define TIME_TRACKING_TIMER_DIVIDER   (16)
-  #else // 30000000UL >= F_CPU > 5000000
-    #define TIME_TRACKING_TIMER_DIVIDER   (64)
-  #endif
-#endif
-
-#define TIME_TRACKING_TICKS_PER_OVF   (TIME_TRACKING_TIMER_PERIOD   + 1UL)
-#define TIME_TRACKING_CYCLES_PER_OVF  (TIME_TRACKING_TICKS_PER_OVF  * TIME_TRACKING_TIMER_DIVIDER)
-
-// For a type B timer as millis, these #defines aren't needed, but they're defined accurately anyway,
-
-
-#if   defined(MILLIS_USE_TIMERA0)
-  #ifndef TCA0
-    #error "TCA0, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERA0
-  #define MILLIS_VECTOR TCA0_HUNF_vect
-#elif defined(MILLIS_USE_TIMERA1)
-  #ifndef TCA1
-    #error "TCA1, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERA1
-  #define MILLIS_VECTOR TCA1_HUNF_vect
-#elif defined(MILLIS_USE_TIMERB0)
-  #ifndef TCB0
-    #error "TCB0, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB0
-  #define MILLIS_VECTOR TCB0_INT_vect
-#elif defined(MILLIS_USE_TIMERB1)
-  #ifndef TCB1
-    #error "TCB1, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB1
-  #define MILLIS_VECTOR TCB1_INT_vect
-#elif defined(MILLIS_USE_TIMERB2)
-  #ifndef TCB2
-    #error "TCB2, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB2
-  #define MILLIS_VECTOR TCB2_INT_vect
-#elif defined(MILLIS_USE_TIMERB3)
-  #ifndef TCB3
-    #error "TCB3, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB3
-  #define MILLIS_VECTOR TCB3_INT_vect
-#elif defined(MILLIS_USE_TIMERB4)
-  #ifndef TCB4
-    #error "TCB4, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB4
-  #define MILLIS_VECTOR TCB4_INT_vect
-#elif defined(MILLIS_USE_TIMERB5)
-  #ifndef TCB5
-    #error "TCB5, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB5
-  #define MILLIS_VECTOR TCB5_INT_vect
-#elif defined(MILLIS_USE_TIMERB6)
-  #ifndef TCB6
-    #error "TCB6, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB6
-  #define MILLIS_VECTOR TCB6_INT_vect
-#elif defined(MILLIS_USE_TIMERB7)
-  #ifndef TCB7
-    #error "TCB7, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERB7
-  #define MILLIS_VECTOR TCB7_INT_vect
-#elif defined(MILLIS_USE_TIMERD0)
-  #ifndef TCD0
-    #error "TCD0, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERD0
-  #define MILLIS_VECTOR TCD0_OVF_vect
-#elif defined(MILLIS_USE_TIMERE0)
-  #ifndef TCE0
-    #error "TCE0, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERE0
-  #define MILLIS_VECTOR TCE0_OVF_vect
-#elif defined(MILLIS_USE_TIMERRTC)
-  #ifndef RTC
-    #error "RTC, selected for millis, does not exist on this part"
-  #endif
-  #define MILLIS_TIMER TIMERRTC
-  #define MILLIS_VECTOR RTC_CNT_vect
-#elif defined(MILLIS_USE_TIMERNONE)
-  #define MILLIS_TIMER NOT_ON_TIMER
-#else
-  #error "Millis timer not specified, nor is millis disabled - can't happen!"
-#endif
 #endif
 
 /* These allow other libraries to detect whether timing functions are available with #ifdef */
@@ -198,9 +198,9 @@
     #warning "TCB autoMUXing is not yet supported"
   #endif
   /* If this feature is ever implemented,  calling analogWrite() on a pin that has PWM controlled by a TCB
-   * it will automatically also set or clear the PORTMUX bit to point the TCB at the right place.
-   * These pins will be included in the pin timer table.
-   */
+  * it will automatically also set or clear the PORTMUX bit to point the TCB at the right place.
+  * These pins will be included in the pin timer table.
+  */
 #endif
 
 
@@ -208,9 +208,9 @@
 /* TYPE-D TIMERS */
 #if defined(MEGATINYCORE)
   /* TCD0 on megaTinyCore is run from the unprescaled clock, at either 20 or 16 MHz depending on the fuse setting.
-   * It will always use a count prescale of 32. If the system clock is cranked all the way back to 1 MHz, though
-   * we knock it down by another factor of 2 because otherwise the interrupts were taking a large fraction of
-   * available CPU time. */
+  * It will always use a count prescale of 32. If the system clock is cranked all the way back to 1 MHz, though
+  * we knock it down by another factor of 2 because otherwise the interrupts were taking a large fraction of
+  * available CPU time. */
   #if (defined(MILLIS_USE_TIMERD0) && F_CPU == 1000000)
     #define TIMERD0_PRESCALER (TCD_CLKSEL_20MHZ_gc | TCD_CNTPRES_DIV32_gc | TCD_SYNCPRES_DIV2_gc)
     // TODO: change to TIMERD0_CLOCK_SETTING here and elsewhere
@@ -221,7 +221,7 @@
   // Pretty simple here!
 #elif defined(DXCORE)
   #if defined(TIMERD0_TOP_SETTING)
-   #if (TIMERD0_TOP_SETTING == 254 || TIMERD0_TOP_SETTING == 509 ||TIMERD0_TOP_SETTING == 1019 ||TIMERD0_TOP_SETTING == 2039 ||TIMERD0_TOP_SETTING == 4079 )
+    #if (TIMERD0_TOP_SETTING == 254 || TIMERD0_TOP_SETTING == 509 ||TIMERD0_TOP_SETTING == 1019 ||TIMERD0_TOP_SETTING == 2039 ||TIMERD0_TOP_SETTING == 4079 )
       #if !defined(USE_TIMERD0_PWM)
         #define USE_TIMERD0_PWM 1
       #endif
@@ -239,37 +239,37 @@
   #endif
 
   /* On the DX-series parts, we can have a lot more fun with the Type D timer!
-   * This flexibility comes at the price of losing the use of TCD0 as a millis timer, but that was being done
-   * as a desperation move on the highly timer-constrained non-golden tinyAVR 1-series parts. The TCD0 on the
-   * tinyAVRs is also far less interesting - it's virtually identical as far as the timer itself, but here
-   * we have a much richer selection timing clock sources.
-              |   CLK_PER | Prescale A | Prescale D  | TOP D |
-              |-----------|------------|-------------|-------|
-              | ** 48 MHz |        256 |             |       |
-              | ** 44 MHz |        256 |             |       |
-              | ** 40 MHz |        256 |             |       |
-              | ** 36 MHz |        256 |             |       |
-              |  External |            | OSCHF@8  32 |   254 |
-              |  * 32 MHz |        256 |          32 |  1019 |
-              |  * 30 MHz |         64 | OSCHF@8  32 |   254 |
-              |  * 28 MHz |         64 |          32 |  1019 |
-              |  * 27 MHz |         64 | OSCHF@8  32 |   254 |
-              |    25 MHz |         64 |          32 |  1019 |
-              |    24 MHz |         64 |          32 |  1019 |
-              |    20 MHz |         64 |          32 |   509 |
-              |    16 MHz |         64 |          32 |   509 |
-              |    14 MHz |         64 | OSCHF@28 32 |  1019 |
-              |    12 MHz |         64 |          32 |   509 |
-              |    10 MHz |         64 | OSCHF@20 32 |   509 |
-              |     8 MHz |         64 |          32 |   254 |
-              |     7 MHz |         16 | OSCHF@28 32 |  1019 |
-              |     6 MHz |         16 | OSCHF@12 32 |   509 |
-              |     5 MHz |         16 | OSCHF@20 32 |   509 |
-              |     4 MHz |         16 |          32 |   254 |
-              |     3 MHz |          8 |           4 |   509 |
-              |     2 MHz |          8 |           4 |   509 |
-              |     1 MHz |          8 |           4 |   254 |
-   */
+  * This flexibility comes at the price of losing the use of TCD0 as a millis timer, but that was being done
+  * as a desperation move on the highly timer-constrained non-golden tinyAVR 1-series parts. The TCD0 on the
+  * tinyAVRs is also far less interesting - it's virtually identical as far as the timer itself, but here
+  * we have a much richer selection timing clock sources.
+  |   CLK_PER | Prescale A | Prescale D  | TOP D |
+  |-----------|------------|-------------|-------|
+  | ** 48 MHz |        256 |             |       |
+  | ** 44 MHz |        256 |             |       |
+  | ** 40 MHz |        256 |             |       |
+  | ** 36 MHz |        256 |             |       |
+  |  External |            | OSCHF@8  32 |   254 |
+  |  * 32 MHz |        256 |          32 |  1019 |
+  |  * 30 MHz |         64 | OSCHF@8  32 |   254 |
+  |  * 28 MHz |         64 |          32 |  1019 |
+  |  * 27 MHz |         64 | OSCHF@8  32 |   254 |
+  |    25 MHz |         64 |          32 |  1019 |
+  |    24 MHz |         64 |          32 |  1019 |
+  |    20 MHz |         64 |          32 |   509 |
+  |    16 MHz |         64 |          32 |   509 |
+  |    14 MHz |         64 | OSCHF@28 32 |  1019 |
+  |    12 MHz |         64 |          32 |   509 |
+  |    10 MHz |         64 | OSCHF@20 32 |   509 |
+  |     8 MHz |         64 |          32 |   254 |
+  |     7 MHz |         16 | OSCHF@28 32 |  1019 |
+  |     6 MHz |         16 | OSCHF@12 32 |   509 |
+  |     5 MHz |         16 | OSCHF@20 32 |   509 |
+  |     4 MHz |         16 |          32 |   254 |
+  |     3 MHz |          8 |           4 |   509 |
+  |     2 MHz |          8 |           4 |   509 |
+  |     1 MHz |          8 |           4 |   254 |
+  */
   #if USE_TIMERD0_PWM == 1
     #if !defined(TIMERD0_WGMODE_SETTING)
       #define TIMERD0_WGMODE_SETTING (TCD_WGMODE_ONERAMP_gc)
@@ -287,9 +287,9 @@
         // And we can set TOP to the default 254.
         #if !defined(TIMERD0_TOP_SETTING)
           #define TIMERD0_TOP_SETTING   (0xFE)
-        // that gives the target 980 kHz PWM freqwuency....
+          // that gives the target 980 kHz PWM freqwuency....
         #endif
-      // if it's internal HF osc as system clock, it's more complicated.....
+        // if it's internal HF osc as system clock, it's more complicated.....
       #elif (F_CPU == 5000000UL || F_CPU == 10000000UL || F_CPU == 6000000UL || F_CPU == 7000000UL || F_CPU == 14000000UL)
         // These speeds are prescaled so we can run from unprescaled clock, and keep the same settings we use at higher clock.
         #define TIMERD0_CLOCK_SETTING (TCD_CNTPRES_DIV32_gc | TCD_SYNCPRES_DIV1_gc | TCD_CLKSEL_OSCHF_gc)
@@ -363,4 +363,3 @@
   #endif
 
 #endif
-

@@ -272,7 +272,7 @@ Vdd                  | SMBus levels Vdd = 1.8-5.5V) |  1.8V |  2.5V |  3.3V | 5.
 ---------------------|------------------------------|-------|-------|-------|------|-----------
 Vin Low (max)        |                        0.80V | 0.54V | 0.75V | 0.99V | 1.5V | Any voltage below this value is guaranteed to be seen as a 0
 Vin High (min) DB    |                        1.35V | 1.26V | 1.75V | 2.31V | 3.5V | Any voltage above this value is guaranteed to be seen as a 1.
-Vin High (min) DA/DD |                 ~1.45V  `*`  | 1.26V | 1.75V | 2.31V | 3.5V |
+Vin High (min) DA/DD |                 ~1.45V  `*`  | 1.26V | 1.75V | 2.31V | 3.5V | |
 
 `*` The DA and DD (but not the DB) datasheets imply that the minimum guaranteed high is 1.45V in SMbus mode if running at less than 2.5v.
 

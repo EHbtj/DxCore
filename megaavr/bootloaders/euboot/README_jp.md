@@ -44,11 +44,11 @@ DFU ほど小さくはないが実用上は十分コンパクトだ。
 
 これを行うには、次の環境が必要だ:
 
-#### [MultiX Zinnia Product SDK [modernAVR] @0.3.0+](https://github.com/askn37/multix-zinnia-sdk-modernAVR)
+### [MultiX Zinnia Product SDK [modernAVR] @0.3.0+](https://github.com/askn37/multix-zinnia-sdk-modernAVR)
 
 Arduino IDE/CLIボードマネージャで簡単にインストールできるベアメタル開発SDK。AVR-LIBCを使いやすくする各種マクロを備えており、Arduino-APIに近い感覚で低レベルコードを記述できる。AVRDUDE 8.0+も同時にインストールされる。
 
-#### [Arduino-CLI @1.0.3+](https://arduino.github.io/arduino-cli/1.0/installation/)
+### [Arduino-CLI @1.0.3+](https://arduino.github.io/arduino-cli/1.0/installation/)
 
 付属の Makefile を使用してファームウェアをビルドする場合に必要。
 これがなくとも modernAVR SDK だけでバイナリファイルを出力できるが、メニュー設定が煩雑になる。
@@ -65,7 +65,7 @@ Arduino IDE/CLIボードマネージャで簡単にインストールできる�
 modernAVR SDKをインストールし、Arduino-CLIとAVRDUDE 8.0を実行パスに追加し、準備ができたら`euboot`ディレクトリに移動して`make all`を実行する。生成されたファイルは`hex`ディレクトリに保存される。
 
 ```sh
-cd euboot 
+cd euboot
 make all
 ```
 
