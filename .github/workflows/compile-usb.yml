@@ -41,6 +41,7 @@ jobs:
           sketch-paths: |
             - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
             - megaavr/libraries/DxCore/examples/USB/SerialUSBAndUART
+            - megaavr/extras/ci/test-sketch/usb/UARTRegression
             - megaavr/extras/ci/test-sketch/usb/StreamAPI
             - megaavr/extras/ci/test-sketch/all/dummysketch
           platforms: |
@@ -68,6 +69,7 @@ jobs:
           fqbn: DxCore:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=regulator
           sketch-paths: |
             - megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
+            - megaavr/extras/ci/test-sketch/usb/UARTRegression
             - megaavr/extras/ci/test-sketch/usb/StreamAPI
           platforms: |
             - source-url: http://drazzy.com/package_drazzy.com_index.json

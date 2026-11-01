@@ -146,7 +146,7 @@ avrduusb.build.flmapopts=-DLOCK_FLMAP -DFLMAPSECTION1
 avrduusb.build.printf=
 avrduusb.build.vid=0x04D8
 avrduusb.build.pid=0x0B15
-avrduusb.build.extra_flags=-DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PF2 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=HWSERIAL1_MUX_PINSWAP_2 -DUSB_VID={build.vid} -DUSB_PID={build.pid}
+avrduusb.build.extra_flags=-DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PF2 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=2 -DUSB_VID={build.vid} -DUSB_PID={build.pid}
 avrduusb.build.export_merged_output=false
 avrduusb.build.mcupostfix=.usb
 avrduusb.build.wireabr=
@@ -196,7 +196,7 @@ avrduusb_generic.build.attachmode=-DCORE_ATTACH_ALL
 avrduusb_generic.build.printf=
 avrduusb_generic.build.vid=0x04D8
 avrduusb_generic.build.pid=0x0B15
-avrduusb_generic.build.extra_flags=-DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PA7 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=HWSERIAL1_MUX_PINSWAP_2 -DDXCORE_USB_VREG={build.usbvreg} -DUSB_VID={build.vid} -DUSB_PID={build.pid}
+avrduusb_generic.build.extra_flags=-DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PA7 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=2 -DDXCORE_USB_VREG={build.usbvreg} -DUSB_VID={build.vid} -DUSB_PID={build.pid}
 avrduusb_generic.build.export_merged_output=false
 avrduusb_generic.build.mcupostfix=.usb-{build.usbpower}
 avrduusb_generic.build.wireabr=
