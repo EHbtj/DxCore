@@ -51,6 +51,21 @@ def resolved(config, key):
 
 
 class USBAssetTests(unittest.TestCase):
+    def test_usb_hid_mode_preserves_bootloader_and_upload_contract(self):
+        for board in ("avrduusb", "avrduusb_generic"):
+            cdc = board_config(board)
+            hid = board_config(board, usbmode="hid")
+            with self.subTest(board=board):
+                self.assertEqual(resolved(cdc, "build.pid"), "0x0B15")
+                self.assertEqual(resolved(hid, "build.pid"), "0x0B16")
+                self.assertNotIn("-DDXCORE_USB_HID", resolved(cdc, "build.extra_flags"))
+                self.assertIn("-DDXCORE_USB_HID", resolved(hid, "build.extra_flags"))
+                self.assertIn("-DDXCORE_USB_CDC", resolved(hid, "build.extra_flags"))
+                self.assertEqual(hid["upload.use_1200bps_touch"], "true")
+                for key in cdc:
+                    if key.startswith(("bootloader.", "upload.")):
+                        self.assertEqual(cdc[key], hid[key], key)
+
     def test_bootloader_matches_pinned_upstream_blob(self):
         text = (PLATFORM / "bootloaders/euboot/hex/euboot_LF2_SF6.hex").read_text(encoding="ascii")
         data = text.encode("ascii")

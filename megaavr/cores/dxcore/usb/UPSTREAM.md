@@ -19,5 +19,8 @@ DxCore changes:
 - Deferred the euboot SRAM marker/reset until the 1200 bps DTR-close status is ACKed.
 
 The fixed euboot image is vendored separately under bootloaders/euboot.
-Public Arduino APIs are declared in ../SerialUSB.h. USB/CDC internals are not
-a supported PluggableUSB or HID API.
+Public Arduino APIs are declared in ../SerialUSB.h, ../Keyboard.h and ../Mouse.h.
+HID.cpp/HID.h are DxCore's optional boot keyboard and mouse implementation;
+select USB Mode > CDC + Keyboard + Mouse. HID class requests follow the
+[USB HID 1.11 specification](https://www.usb.org/sites/default/files/hid1_11.pdf).
+USB/CDC and USB/HID internals are not a supported PluggableUSB API.

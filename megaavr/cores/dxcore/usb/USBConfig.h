@@ -11,7 +11,11 @@
   #define USB_MANUFACTURER "Microchip Technology Inc."
 #endif
 #ifndef USB_PRODUCT
-  #define USB_PRODUCT "DxCore AVR DU CDC"
+  #if defined(DXCORE_USB_HID)
+    #define USB_PRODUCT "DxCore AVR DU CDC + HID"
+  #else
+    #define USB_PRODUCT "DxCore AVR DU CDC"
+  #endif
 #endif
 
 #ifndef DXCORE_USB_VREG

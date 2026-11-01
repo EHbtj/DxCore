@@ -77,6 +77,7 @@
 #________________________________________________________________________#
 
 menu.chip=Chip
+menu.usbmode=USB Mode
 menu.usbpower=USB power (bootloader burn required)
 menu.board=Board/version
 menu.clock=Clock Speed
@@ -150,7 +151,8 @@ avrduusb.build.flmapopts={build.defaultflmapopts}
 avrduusb.build.flmapabr={build.defaultflmapabr}
 avrduusb.build.vid=0x04D8
 avrduusb.build.pid=0x0B15
-avrduusb.build.extra_flags=-DDXCORE_USB_WDTCFG=0b{build.wdtwindowbits}{build.wdttimeoutbits} -DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PF2 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=2 -DUSB_VID={build.vid} -DUSB_PID={build.pid}
+avrduusb.build.usbhidflags=
+avrduusb.build.extra_flags=-DDXCORE_USB_WDTCFG=0b{build.wdtwindowbits}{build.wdttimeoutbits} -DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PF2 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=2 -DUSB_VID={build.vid} -DUSB_PID={build.pid} {build.usbhidflags}
 avrduusb.build.export_merged_output=false
 avrduusb.build.mcupostfix=.usb
 avrduusb.build.wireabr=
@@ -160,6 +162,8 @@ avrduusb.build.attachabr=
 avrduusb.build.defaultflmapabr=.fld
 avrduusb.vid.0=0x04D8
 avrduusb.pid.0=0x0B15
+avrduusb.vid.1=0x04D8
+avrduusb.pid.1=0x0B16
 avrduusb.upload.tool=euboot
 avrduusb.upload.tool.serial=euboot
 avrduusb.upload.tool.default=euboot
@@ -194,6 +198,13 @@ avrduusb.bootloader.avrdudestring=-Uflash:w:{runtime.platform.path}/bootloaders/
 avrduusb.name=AVR64DU32 Curiosity Nano (native USB CDC + euboot)
 
 # DxCore options for the native USB application.
+avrduusb.menu.usbmode.cdc=CDC (SerialUSB)
+avrduusb.menu.usbmode.cdc.build.usbhidflags=
+avrduusb.menu.usbmode.cdc.build.pid=0x0B15
+avrduusb.menu.usbmode.hid=CDC + Keyboard + Mouse
+avrduusb.menu.usbmode.hid.build.usbhidflags=-DDXCORE_USB_HID
+avrduusb.menu.usbmode.hid.build.pid=0x0B16
+
 avrduusb.menu.clock.20internal=20 MHz internal
 avrduusb.menu.clock.20internal.build.speed=20
 avrduusb.menu.clock.20internal.build.clocksource=0
@@ -379,7 +390,8 @@ avrduusb_generic.build.flmapopts={build.defaultflmapopts}
 avrduusb_generic.build.flmapabr={build.defaultflmapabr}
 avrduusb_generic.build.vid=0x04D8
 avrduusb_generic.build.pid=0x0B15
-avrduusb_generic.build.extra_flags=-DDXCORE_USB_WDTCFG=0b{build.wdtwindowbits}{build.wdttimeoutbits} -DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PA7 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=2 -DDXCORE_USB_VREG={build.usbvreg} -DUSB_VID={build.vid} -DUSB_PID={build.pid}
+avrduusb_generic.build.usbhidflags=
+avrduusb_generic.build.extra_flags=-DDXCORE_USB_WDTCFG=0b{build.wdtwindowbits}{build.wdttimeoutbits} -DDXCORE_USB_CDC -DUSING_EUBOOT -DLED_BUILTIN=PIN_PA7 -DSW_BUILTIN=PIN_PF6 -DHWSERIAL1_MUX_DEFAULT=2 -DDXCORE_USB_VREG={build.usbvreg} -DUSB_VID={build.vid} -DUSB_PID={build.pid} {build.usbhidflags}
 avrduusb_generic.build.export_merged_output=false
 avrduusb_generic.build.mcupostfix=.usb-{build.usbpower}
 avrduusb_generic.build.wireabr=
@@ -388,6 +400,8 @@ avrduusb_generic.build.appspmabr=
 avrduusb_generic.build.attachabr=
 avrduusb_generic.vid.0=0x04D8
 avrduusb_generic.pid.0=0x0B15
+avrduusb_generic.vid.1=0x04D8
+avrduusb_generic.pid.1=0x0B16
 avrduusb_generic.upload.tool=euboot
 avrduusb_generic.upload.tool.serial=euboot
 avrduusb_generic.upload.tool.default=euboot
@@ -459,6 +473,13 @@ avrduusb_generic.menu.usbpower.external.build.usbpower=external
 avrduusb_generic.menu.usbpower.external.bootloader.usbvregbit=0
 
 # DxCore options for the native USB application.
+avrduusb_generic.menu.usbmode.cdc=CDC (SerialUSB)
+avrduusb_generic.menu.usbmode.cdc.build.usbhidflags=
+avrduusb_generic.menu.usbmode.cdc.build.pid=0x0B15
+avrduusb_generic.menu.usbmode.hid=CDC + Keyboard + Mouse
+avrduusb_generic.menu.usbmode.hid.build.usbhidflags=-DDXCORE_USB_HID
+avrduusb_generic.menu.usbmode.hid.build.pid=0x0B16
+
 avrduusb_generic.menu.clock.20internal=20 MHz internal
 avrduusb_generic.menu.clock.20internal.build.speed=20
 avrduusb_generic.menu.clock.20internal.build.clocksource=0

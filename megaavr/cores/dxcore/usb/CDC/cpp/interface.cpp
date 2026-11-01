@@ -10,6 +10,7 @@
 #include "../../CDC.h"
 #include "../constants.h"
 #include "../../USBConfig.h"
+#include "../../HID.h"
 
 namespace USB_NAMESPACE {
   Interface_State USB_STATE;
@@ -31,6 +32,9 @@ namespace USB_NAMESPACE {
   void cb_clear_state() {
     USB_STATE = Interface_State{};
     suspended = false;
+    #if defined(DXCORE_USB_HID)
+    hid_reset();
+    #endif
   }
   bool is_ready() {
     return running && !suspended && USBSTATE.CONFIG == 1;
@@ -74,6 +78,9 @@ namespace USB_NAMESPACE {
     USB_EP_INTR.CTRL = USB_TYPE_DISABLE_gc;
     USB_EP_RECV.CTRL = USB_TYPE_DISABLE_gc;
     USB_EP_SEND.CTRL = USB_TYPE_DISABLE_gc;
+    #if defined(DXCORE_USB_HID)
+    hid_configure(config);
+    #endif
     if (!config) {
       return true;
     }
@@ -117,6 +124,9 @@ namespace USB_NAMESPACE {
   void cb_event_class_sof() {
     service_control();
     tick_bootloader();
+    #if defined(DXCORE_USB_HID)
+    hid_sof();
+    #endif
     if (is_ready() && is_send_ready() && USBSTATE.SENDCNT) {
       send_buffer();
     }

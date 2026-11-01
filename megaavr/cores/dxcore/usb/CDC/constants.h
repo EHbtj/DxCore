@@ -18,7 +18,11 @@
 #include "define.h"
 
 /* CDC-ACM general specs */
-#define USB_ENDPOINTS_MAX     3     /* fixed value */
+#if defined(DXCORE_USB_HID)
+  #define USB_ENDPOINTS_MAX   5
+#else
+  #define USB_ENDPOINTS_MAX   3
+#endif
 #define USB_BULK_INTERVAL     0     /* As large as possible */
 #define USB_INTR_INTERVAL     5     /* As large as possible */
 
@@ -43,6 +47,8 @@
 #define USB_EP_INTR_IN    (0x18)
 #define USB_EP_BULK_OUT   (0x20)
 #define USB_EP_BULK_IN    (0x28)
+#define USB_EP_KEYBOARD_IN (0x38)
+#define USB_EP_MOUSE_IN    (0x48)
 
 /* Shortcut Macros */
 
@@ -90,6 +96,10 @@ namespace USB_NAMESPACE {
     uint8_t intr[USB_BULK_INTR_MAX];
     uint8_t recv[USB_BULK_RECV_MAX];
     uint8_t send[USB_BULK_SEND_MAX];
+    #if defined(DXCORE_USB_HID)
+    uint8_t keyboard[8];
+    uint8_t mouse[4];
+    #endif
   };
 
   static_assert(offsetof(USB_EP_TABLE_t, EP) % 2 == 0, "USB endpoint table must be even-aligned");
@@ -97,6 +107,10 @@ namespace USB_NAMESPACE {
   static_assert(offsetof(USB_WM_TABLE_t, intr) % 2 == 0, "Notification DMA buffer must be even-aligned");
   static_assert(offsetof(USB_WM_TABLE_t, recv) % 2 == 0, "Receive DMA buffer must be even-aligned");
   static_assert(offsetof(USB_WM_TABLE_t, send) % 2 == 0, "Transmit DMA buffer must be even-aligned");
+  #if defined(DXCORE_USB_HID)
+  static_assert(offsetof(USB_WM_TABLE_t, keyboard) % 2 == 0, "Keyboard DMA buffer must be even-aligned");
+  static_assert(offsetof(USB_WM_TABLE_t, mouse) % 2 == 0, "Mouse DMA buffer must be even-aligned");
+  #endif
   static_assert(sizeof(Setup_Packet) == 8 && sizeof(LineEncoding_t) == 7, "USB wire structures must be packed");
 
   /*** Callback functions for them. ***/

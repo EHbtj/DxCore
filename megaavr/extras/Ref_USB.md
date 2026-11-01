@@ -15,7 +15,8 @@ IC 単体は **AVR DU-series (native USB CDC + euboot, standalone)** を選択�
 - 通常時は OS 標準の CDC ドライバーで仮想 COM ポートとして使用。
 - IDE のシリアルモニターから SerialUSB と通信。
 - IDE からの書き込み時に 1200 bps のポート開閉で euboot に移行し、更新・検証後にスケッチを起動。
-- 書き込み時だけ HID / CMSIS-DAP / EDBG を使用。標準 DFU とは異なります。
+- 書き込み時は euboot の HID / CMSIS-DAP / EDBG を使用。標準 DFU とは異なります。
+- USB Mode を **CDC + Keyboard + Mouse** にすると、通常時も HID キーボードとマウスを使用できます。
 
 Serial と Serial0 は UART0 のままです。Serial1 は Nano のデバッガーに
 接続された PD6 / PD7 の UART1 に設定されます。
@@ -40,6 +41,11 @@ SERIAL_PORT_HARDWARE と SERIAL_PORT_HARDWARE_OPEN は Serial0 を指します�
 
 4. IDE を再起動して USB 対応ボードを選択します。
 
+旧開発版からの上書き更新では、`cores/dxcore/usb/CDC/cpp/descripter.cpp` も
+今回の空の互換ファイルで上書きしてください。実装本体は `descriptor.cpp` に移動しています。
+旧 `descripter.cpp` が残ると CDC 専用の古い定義が優先され、HID モードを選択しても
+COM ポートだけが認識されることがあります。更新後はスケッチを再コンパイルして書き込みます。
+
 ボードパッケージとして配布する場合は、既存 SerialUPDI と同じ Python ランタイムを使用します。
 アップローダーに pip パッケージの追加は不要です。
 
@@ -47,11 +53,16 @@ SERIAL_PORT_HARDWARE と SERIAL_PORT_HARDWARE_OPEN は Serial0 を指します�
 
 Nano と IC 単体の USB ボードには、次の共通メニューがあります。
 既存の開発版を導入済みの場合は megaavr を再コピーし、IDE を再起動してください。
-メニューが表示されない場合は、一度別のボードを選択してから USB ボードを選び直してください。
-今回の Nano では、この操作で追加メニューが表示されることをユーザーが確認しています。
+メニューが表示されない場合は、**ツール → Reload Board Data** を実行し、
+読み込み完了後にツールメニューを開き直してください。
+IDE が古いボード情報を保持している場合、再起動やボードの選び直しだけでは
+追加メニューが反映されないことがあります。
+それでも表示されない場合は、一度別のボードを選択してから USB ボードを選び直してください。
+開発版のボードは **DxCore（スケッチブック内）(DxCoreUSB)** から選択します。
 
 | メニュー | 選択肢・適用方法 |
 | --- | --- |
+| USB Mode | CDC (SerialUSB)（初期値）/ CDC + Keyboard + Mouse。スケッチの再書き込みで適用 |
 | Clock Speed | 内蔵 12 / 16 / 20 / 24 MHz、水晶 12 / 16 / 20 / 24 MHz、外部クロック 16 / 20 / 24 MHz。スケッチの再書き込みで適用 |
 | millis()/micros() timer | TCB1（初期値）、TCB0、TCA0、無効。スケッチの再書き込みで適用 |
 | WDT Timeout / WDT "window" (sketch, before setup) | 無効、62.5 / 125 / 250 / 500 ms、1 / 2 / 4 / 8 秒。スケッチの再書き込みで適用 |
@@ -182,6 +193,70 @@ void loop() {
 実例は DxCore ライブラリーの USB / SerialUSBEcho と USB / SerialUSBAndUART にあります。
 UART 併用例では USB と Nano デバッガーの別 COM ポートを使って双方向に通信できます。
 
+## HID キーボード・マウス
+
+AVR64DU32 / AVR32DU32 / AVR64DU28 / AVR32DU28 の USB 対応ボードで、
+ツールの **USB Mode → CDC + Keyboard + Mouse** を選択します。
+既存の開発版を使用中の場合は、このリポジトリの `megaavr` を再コピーし、IDE を再起動してください。
+`#include <Keyboard.h>` と `#include <Mouse.h>` で、コアに含まれる API を使用できます。
+追加ライブラリーのインストールは不要です。CDC 専用モードで読み込むと、設定変更を案内するコンパイルエラーになります。
+
+```cpp
+#include <Keyboard.h>
+#include <Mouse.h>
+
+void setup() {
+  SerialUSB.begin();
+  Keyboard.begin();
+  Mouse.begin();
+}
+
+void loop() {
+  // シリアルモニターから送ったコマンドに応じて操作します。
+  switch (SerialUSB.read()) {
+    case 'k': Keyboard.println("Hello AVR DU!"); break;
+    case 'm': Mouse.move(10, 0); break;
+    case 'c': Mouse.click(); break;
+  }
+}
+```
+
+実例は **DxCore → USB → HIDKeyboardMouse** にあります。
+Nano ではデバッガー側ではなくターゲット USB 側の COM ポートを選択してください。
+HID モードでも `SerialUSB`、UART、1200 bps による euboot への移行を併用できます。
+モード切り替えで USB の PID が変わるため、再認識後の COM ポートを選び直す場合があります。
+ブートローダーの再書き込みは不要です。
+
+- `Keyboard.begin()`、`press()`、`release()`、`releaseAll()`、`write()`、
+  `print()`、`println()`、`end()` を提供します。
+  通常キーは最大6個、修飾キーは8ビットで管理します。`KEY_LEFT_CTRL`、`KEY_RETURN`、矢印キー、F1〜F24等を使用できます。
+  ASCII 文字は US 配列のキー位置に変換します。日本語の文字入力や JIS 配列の文字変換には対応していません。
+  実際に入力される文字はホスト側の配列・IME 設定にも依存します。
+  `Keyboard.getLeds()` はホストからの LED 状態
+  （bit 0: Num Lock、bit 1: Caps Lock、bit 2: Scroll Lock）を返します。
+- `Mouse.begin()`、`move(x, y, wheel)`、`click()`、`press()`、`release()`、
+  `isPressed()`、`end()` を提供します。
+  `MOUSE_LEFT`、`MOUSE_RIGHT`、`MOUSE_MIDDLE`、`MOUSE_ALL` を使用できます。
+  移動・ホイールは -127〜127 の相対値です。-128 を渡した場合は -127 に制限します。
+- キーボードとマウスをそれぞれ Boot subclass の別インターフェースとして列挙します。
+  マウスは Report Protocol でホイール付き4バイト、Boot Protocol で3バイトです。
+  HID の `GET_REPORT`、キーボード LED の `SET_REPORT`、`GET/SET_IDLE`、`GET/SET_PROTOCOL` に対応します。
+  アイドル再送で相対移動を繰り返すことはありません。
+- `Keyboard` と `Mouse` は USB の構成完了時に真として判定できます。CDC の DTR には依存しません。
+  送信待ちは最大約100 msで、`millis()` を無効にしても終了します。
+  未接続・サスペンド中・割り込み無効時等は送信せず戻ります。
+  `Keyboard.press()` / `release()` / `write()` は失敗時に0を返し、`getWriteError()` で検出できます。
+  戻り値はUSB送信バッファへの投入結果であり、ホストでの入力完了を保証するものではありません。
+  `end()` はキー・ボタンを解放し、USB 全体や CDC は停止しません。
+  `SerialUSB.end()` は複合デバイス全体を停止します。
+
+この HID 実装はビルド・ディスクリプタ検査とホスト上のファームウェアテストで確認しています。
+Nano / Windows では、CDC・HID キーボード・HID マウスの正常な列挙と、
+1200 bps による複合デバイスからの実機更新・書き込み検証を確認しました。
+HIDKeyboardMouse の `m` コマンドでマウスポインターが右に移動することも実機確認済みです。
+キー入力・マウスボタン・ホイール・BIOS/UEFI での動作は未確認です。
+任意の HID レポートを追加する PluggableUSB API、Consumer Control、NKRO、リモートウェイクには対応していません。
+
 ## メモリと USB 識別子
 
 CDC は MacroMicroAPI_lib の実装を移植し、Arduino Stream との互換性、
@@ -194,6 +269,7 @@ USB の処理は USB 割り込みと SOF で行い、Arduino のタイマーを�
 | 動作 | VID | PID |
 | --- | --- | --- |
 | CDC | 0x04D8 | 0x0B15 |
+| CDC + Keyboard + Mouse | 0x04D8 | 0x0B16 |
 | euboot HID | 0x04D8 | 0x0B12 |
 
 CDC の値はボード定義の build.vid / build.pid、
@@ -201,7 +277,9 @@ CDC の値はボード定義の build.vid / build.pid、
 CDC 文字列は cores/dxcore/usb/USBConfig.h に集約しています。
 euboot の識別子を変更する場合は、euboot の configuration.h を変更して再生成し、
 検索値も一致させてください。
-これらは参考実装と同じ Microchip 評価用設定です。製品配布時の独自識別子は別途用意してください。
+CDC と euboot は参考実装と同じ Microchip 評価用設定です。
+HID 複合構成の 0x0B16 は、この開発版で CDC 専用構成の OS キャッシュと区別するための仮の PID です。
+正式な割り当てを示すものではありません。製品配布時の独自識別子は別途用意してください。
 
 現時点で検証対象となるのは接続されたターゲット1台です。
 複数の同一 euboot HID を検出した場合、アップローダーは書き込まずに停止します。
@@ -267,7 +345,7 @@ python megaavr/extras/ci/verify_usb_build.py path/to/SerialUSBEcho.ino.elf
 - 更新前後でブート領域を読み出して一致を確認し、通常の更新で euboot が消えない。
 
 ビルド確認は、USB の列挙・実転送・実機更新の確認を代替しません。
-AVR16DU、14/20 ピン品種、他の OS、標準 DFU、汎用 HID、リモートウェイク、
+AVR16DU、14/20 ピン品種、他の OS、標準 DFU、任意レポートの汎用 HID、リモートウェイク、
 低消費電力動作は後続対応です。
 
 ## IC 単体 / 汎用ボード

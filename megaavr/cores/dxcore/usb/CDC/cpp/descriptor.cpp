@@ -18,6 +18,7 @@
 #include "../constants.h"
 
 #include "../../USBConfig.h"
+#include "../../HID.h"
 #define USB_VENDOR_ID USB_VID
 #define USB_PRODUCT_ID USB_PID
 #define USB_SERIALNUMBER_CHIP
@@ -88,6 +89,14 @@ typedef struct USB_General_Configuration_Descriptor {
   USB_Interface_Descriptor                  CDC_DCI_Interface;
   USB_Endpoint_Descriptor                   CDC_DataOut_Endpoint;
   USB_Endpoint_Descriptor                   CDC_DataIn_Endpoint;
+  #if defined(DXCORE_USB_HID)
+  USB_Interface_Descriptor                  Keyboard_Interface;
+  HIDDescriptor                            Keyboard_HID;
+  USB_Endpoint_Descriptor                   Keyboard_Endpoint;
+  USB_Interface_Descriptor                  Mouse_Interface;
+  HIDDescriptor                            Mouse_HID;
+  USB_Endpoint_Descriptor                   Mouse_Endpoint;
+  #endif
 } USB_General_Configuration_Descriptor;
 
 const USB_General_Configuration_Descriptor PROGMEM general_configuration_descriptor = {
@@ -95,7 +104,11 @@ const USB_General_Configuration_Descriptor PROGMEM general_configuration_descrip
     .bLength              = sizeof(USB_Configuration_Descriptor)
     , .bDescriptorType      = USB_DTYPE_Configuration
     , .wTotalLength         = sizeof(USB_General_Configuration_Descriptor)
+    #if defined(DXCORE_USB_HID)
+    , .bNumInterfaces       = 4
+    #else
     , .bNumInterfaces       = 2
+    #endif
     , .bConfigurationValue  = 1       // Request SET_CONFIGURATION Number
     , .iConfiguration       = 0
     , .bmAttributes         = 0x80 | USB_CONFIG_ATTR_BUSPOWERED_bm
@@ -185,7 +198,17 @@ const USB_General_Configuration_Descriptor PROGMEM general_configuration_descrip
     , .wMaxPacketSize       = USB_DATA_PK_SIZE
     , .bInterval            = USB_BULK_INTERVAL
   },
+  #if defined(DXCORE_USB_HID)
+  .Keyboard_Interface = {9, USB_DTYPE_Interface, HID_KEYBOARD_INTERFACE, 0, 1, 3, 1, 1, 0},
+  .Keyboard_HID = {9, 0x21, 0x0111, 0, 1, 0x22, HID_KEYBOARD_REPORT_SIZE},
+  .Keyboard_Endpoint = {7, USB_DTYPE_Endpoint, 0x83, USB_EP_TYPE_INTERRUPT_gc, 8, 1},
+  .Mouse_Interface = {9, USB_DTYPE_Interface, HID_MOUSE_INTERFACE, 0, 1, 3, 1, 2, 0},
+  .Mouse_HID = {9, 0x21, 0x0111, 0, 1, 0x22, HID_MOUSE_REPORT_SIZE},
+  .Mouse_Endpoint = {7, USB_DTYPE_Endpoint, 0x84, USB_EP_TYPE_INTERRUPT_gc, 8, 1},
+  #endif
 };
+static_assert(sizeof(USB_General_Configuration_Descriptor) <= USB_DATA_BUFFER_SIZE,
+              "Configuration must fit the EP0 DMA buffer");
 
 const USB_DeviceQualifier_Descriptor PROGMEM devicequalifier_descriptor = {
   /* This descriptor is used when inserted into a USB 3.x port. */

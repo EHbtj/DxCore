@@ -9,9 +9,10 @@
 #include <string.h>
 #include "../../CDC.h"
 #include "../constants.h"
+#include "../../HID.h"
 
 namespace USB_NAMESPACE {
-  enum class ControlPhase : uint8_t { Idle, LineCoding, AddressStatus, BootStatus };
+  enum class ControlPhase : uint8_t { Idle, LineCoding, AddressStatus, BootStatus, HIDOutput };
   static ControlPhase phase;
   static Setup_Packet request;
   static uint8_t pending_address;
@@ -48,12 +49,20 @@ namespace USB_NAMESPACE {
   }
 
   static bool valid_interface(uint16_t index) {
+    #if defined(DXCORE_USB_HID)
+    return USBSTATE.CONFIG && index <= HID_MOUSE_INTERFACE;
+    #else
     return USBSTATE.CONFIG && index <= USB_INTERFACE_ID_CDC_DCI;
+    #endif
   }
 
   static bool valid_endpoint(uint16_t address) {
     return address == 0 || address == 0x80 ||
-           (USBSTATE.CONFIG && (address == 0x81 || address == 0x02 || address == 0x82));
+           (USBSTATE.CONFIG && (address == 0x81 || address == 0x02 || address == 0x82
+           #if defined(DXCORE_USB_HID)
+             || address == 0x83 || address == 0x84
+           #endif
+           ));
   }
 
   static uint8_t endpoint_id(uint8_t address) {
@@ -74,6 +83,13 @@ namespace USB_NAMESPACE {
     if ((request.bmRequestType & USB_REQTYPE_TYPE_gm) == USB_REQTYPE_STANDARD_gc) {
       switch (request.bRequest) {
         case USB_REQ_GetDescriptor:
+          #if defined(DXCORE_USB_HID)
+          if (request.bmRequestType == 0x81) {
+            size = hid_descriptor(data, request.wIndex, request.wValue);
+            accepted = size != 0;
+            break;
+          }
+          #endif
           accepted = request.bmRequestType == 0x80;
           if (accepted) {
             size = cb_get_descriptor_data(data, request.wValue);
@@ -196,6 +212,17 @@ namespace USB_NAMESPACE {
         default:
           accepted = false;
       }
+    #if defined(DXCORE_USB_HID)
+    } else if (USBSTATE.CONFIG &&
+               (request.wIndex == HID_KEYBOARD_INTERFACE || request.wIndex == HID_MOUSE_INTERFACE)) {
+      if (hid_set_output_request(request)) {
+        phase = ControlPhase::HIDOutput;
+        ep_setup_out_listen();
+        USB0_INTFLAGSB = USB_SETUP_bm;
+        return;
+      }
+      accepted = hid_setup(request, data, size);
+    #endif
     } else {
       accepted = false;
     }
@@ -218,6 +245,18 @@ namespace USB_NAMESPACE {
       return; // RMW endpoint rearming may still be in flight.
     }
     constexpr uint8_t completed = USB_BUSNAK_bm | USB_TRNCOMPL_bm;
+    #if defined(DXCORE_USB_HID)
+    if (phase == ControlPhase::HIDOutput && (USB_EP_REQ.STATUS & completed) == completed) {
+      phase = ControlPhase::Idle;
+      if (USB_EP_REQ.CNT == 1) {
+        hid_set_leds(USB_DATA_BUFFER);
+        control_in(0);
+      } else {
+        ep_setup_stalled();
+      }
+      return;
+    }
+    #endif
     if (phase == ControlPhase::LineCoding && (USB_EP_REQ.STATUS & completed) == completed) {
       if (USB_EP_REQ.CNT == sizeof(LineEncoding_t)) {
         // AVR DU uses EP0 IN.DATAPTR for both directions of the DATA stage.

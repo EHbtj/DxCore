@@ -43,7 +43,9 @@ jobs:
           CXX: g++
           EUBOOT_REQUIRE_COMPILER: "1"
           EUBOOT_SANITIZE: "1"
-        run: python -m unittest discover -s megaavr/tools/tests -p test_euboot_firmware.py -v
+        run: |
+          python -m unittest discover -s megaavr/tools/tests -p test_euboot_firmware.py -v
+          python -m unittest discover -s megaavr/tools/tests -p test_usb_hid.py -v
 
   usb:
     runs-on: windows-latest
@@ -66,6 +68,15 @@ jobs:
           megaavr/extras/ci/test-sketch/usb/UARTRegression
           megaavr/extras/ci/test-sketch/usb/StreamAPI
           megaavr/extras/ci/test-sketch/all/dummysketch
+      - name: Compile HID examples and API contract
+        shell: pwsh
+        run: >-
+          python megaavr/extras/ci/compile_usb.py
+          --fqbn DxCoreUSB:megaavr:avrduusb:usbmode=hid
+          --hid --build-root "${{ runner.temp }}/usb-hid"
+          megaavr/libraries/DxCore/examples/USB/HIDKeyboardMouse
+          megaavr/extras/ci/test-sketch/usb/HIDAPI
+          megaavr/extras/ci/test-sketch/usb/StreamAPI
       - name: Compile configurable clock, watchdog and library modes
         shell: pwsh
         run: >-
@@ -103,3 +114,12 @@ jobs:
           megaavr/libraries/DxCore/examples/USB/SerialUSBEcho
           megaavr/extras/ci/test-sketch/usb/UARTRegression
           megaavr/extras/ci/test-sketch/usb/StreamAPI
+      - name: Compile standalone HID with millis disabled
+        shell: pwsh
+        run: >-
+          python megaavr/extras/ci/compile_usb.py
+          --fqbn DxCoreUSB:megaavr:avrduusb_generic:chip=${{ matrix.mcu }},usbpower=${{ matrix.power }},usbmode=hid,millis=disabled
+          --mcu ${{ matrix.mcu }} --hid
+          --build-root "${{ runner.temp }}/standalone-hid"
+          megaavr/libraries/DxCore/examples/USB/HIDKeyboardMouse
+          megaavr/extras/ci/test-sketch/usb/HIDAPI

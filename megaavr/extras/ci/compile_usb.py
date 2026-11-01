@@ -12,6 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fqbn", required=True)
     parser.add_argument("--mcu", default="avr64du32")
+    parser.add_argument("--hid", action="store_true", help="Expect CDC + keyboard + mouse descriptors")
     parser.add_argument("--build-root", type=Path, required=True)
     parser.add_argument("sketches", nargs="+", type=Path)
     args = parser.parse_args()
@@ -21,7 +22,7 @@ def main():
                    "--build-path", str(build), str(sketch.resolve())]
         print("Compiling " + str(sketch) + " for " + args.fqbn, flush=True)
         subprocess.run(command, check=True)
-        verify(build / (sketch.name + ".ino.elf"), args.mcu)
+        verify(build / (sketch.name + ".ino.elf"), args.mcu, args.hid)
 
 
 if __name__ == "__main__":
